@@ -1,0 +1,229 @@
+﻿AES Keyschedule
+	Link:	https://en.wikipedia.org/wiki/AES_key_schedule#:~:text=AES%20uses%20a%20key%20schedule,keys%20from%20the%20initial%20key.
+			https://crypto.stackexchange.com/questions/20/what-are-the-practical-differences-between-256-bit-192-bit-and-128-bit-aes-enc/1527#1527
+
+	Round Constants
+
+		rcon for round i (rconi) = | rci 0x00 0x00 0x00 | is a 32 bit dword
+
+					(1) round 1							0x01
+
+		(rc i) =	(2) round > 1 && (rc i-1) < 0x80	2 * (rc i-1)
+
+					(3) round > 1 && (rc i-1) >= 0x80	(2 * (rc i-1)) ^ 0x11B		Makes sure that result stays inside 1 byte boundary, and produces a different result for every round
+
+		Round	Value	Explanation									rcon
+		1		0x01	See above (1)								0x01000000
+		2		0x02	0x01 * 2, See (2)							0x02000000
+		3		0x04	0x02 * 2, See (2)							0x04000000
+		4		0x08	0x04 * 2, See (2)							0x08000000
+		5		0x10	0x08 * 2, See (2)							0x10000000
+		6		0x20	0x10 * 2, See (2)							0x20000000
+		7		0x40	0x20 * 2, See (2)							0x40000000
+		8		0x80	0x40 * 2, See (2)							0x80000000
+		9		0x1B	(0x80 * 2) = 0x100 ^ 0x11B = 0x1B, See (3)	0x1B000000
+		10		0x36	0x1B * 2, See (2)							0x36000000
+		11		0x6C	0x36 * 2, See (2)							0x6C000000
+		12		0xD8	0x6C * 2, See (2)							0xD8000000
+		13		0xAB	(0xD8 * 2) = 0x1B0 ^ 0x11B = 0xAB, See (3)	0xAB000000
+		14		0x4D	(0xAB * 2) = 0x156 ^ 0x11B = 0x4D, See (3)	0x4D000000
+		15		0x9A	(0x4D * 2), See (2)							0x9A000000
+
+	KeySchedule
+
+		Definitions
+
+		N							As the length of the key in 32 bits dwords, 128 = 4, 192 = 6, 256 = 8.
+		K0, K1, K2, ..., K(N-1)		32 bits dwords of the original key
+		R							Number of rounds, 128 = 11, 192 = 13, 256 = 15.
+		W0, W1, W2, ..., W(4R-1)	32 bits dwords of the expanded key
+		i							0 ... 4R-1
+		RotWord([ b0, b1, b2, b3 ]) = [ b1, b2, b3, b0 ]	One byte Left circular shift of dword
+		SubWord([ b0, b1, b2, b3 ]) = [ S(b0), S(b1), S(b2), S(b3) ] Substitute byte according S-Box
+
+				i < N							Ki										Original key
+
+		Wi =	i >= N && (i % N) = 0			Wi-N ^ SubWord(RotWord(Wi-1)) ^ rconi	Change last dword of key
+
+				i >= N && N > 6 && (i % N) = 4	Wi-N ^ SubWord(Wi-1)					AES256 and above, extra substitution
+
+				otherwise						Wi-N ^ Wi-1								Xor previous expanded dword key with previous round expanded dword key
+
+State
+	4 Rows by Nb Columns
+
+		128 / 4 = 32 bits = 4 Columns		0x01 0x05 0x09 0x0D		0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08 0x09 0x0A 0x0B 0x0C 0x0D 0x0E 0x0F 0x10
+											0x02 0x06 0x0A 0x0E
+											0x03 0x07 0x0B 0x0F
+											0x04 0x08 0x0C 0x10
+
+		192 / 4 = 48 bits = 6 Columns		0x01 0x05 0x09 0x0D 0x11 0x15	0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08 0x09 0x0A 0x0B 0x0C 0x0D 0x0E 0x0F 0x10 0x11 0x12 0x13 0x14 0x15 0x16 0x17 0x18
+											0x02 0x06 0x0A 0x0E 0x12 0x16
+											0x03 0x07 0x0B 0x0F 0x13 0x17
+											0x04 0x08 0x0C 0x10 0x14 0x18
+
+		256 / 4 = 64 bits = 8 Columns		0x01 0x05 0x09 0x0D 0x11 0x15 0x19 0x1D		0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08 0x09 0x0A 0x0B 0x0C 0x0D 0x0E 0x0F 0x10 0x11 0x12 0x13 0x14 0x15 0x16 0x17 0x18 0x19 0x1A 0x1B 0x1C 0x1D 0x1E 0x1F 0x20
+											0x02 0x06 0x0A 0x0E 0x12 0x16 0x1A 0x1E
+											0x03 0x07 0x0B 0x0F 0x13 0x17 0x1B 0x1F
+											0x04 0x08 0x0C 0x10 0x14 0x18 0x1C 0x20
+
+		How to create 2 dimensional state array
+		for (int row = 0; row < 4; row++)
+			for (int column = 0; column < Nb; column++)		// Where Nb = 4, 6 or 8 resp. Aes128, Aes192 or Aes256
+				State[row, column] = input[row + 4column];
+
+MixColumns
+
+	State[0, column] = (2 * IState[0, column]) ^ (3 * IState[1, column]) ^ IState[2, column] ^ IState[3, column]	| 02 03 01 01 |
+	State[1, column] = IState[0, column] ^ (2 * IState[1, column]) ^ (3 * IState[2, column]) ^ IState[3, column]	| 01 02 03 01 |
+	State[2, column] = IState[0, column] ^ IState[1, column] ^ (2 * IState[2, column]) ^ (3 * IState[3, column])	| 01 01 02 03 |
+	State[3, column] = (3 * IState[0, column]) ^ IState[1, column] ^ IState[2, column] ^ (2 * IState[3, column])	| 03 01 01 02 |
+
+	Inverse
+
+	State[0, column] = (0x0E * IState[0, column]) ^ (0x0B * IState[1, column]) ^ (0x0D * IState[2, column]) ^ (0x09 * IState[3, column])	| 0E 0B 0D 09 |
+	State[1, column] = (0x09 * IState[0, column]) ^ (0x0E * IState[1, column]) ^ (0x0B * IState[2, column]) ^ (0x0D * IState[3, column])	| 09 0E 0B 0D |
+	State[2, column] = (0x0D * IState[0, column]) ^ (0x09 * IState[1, column]) ^ (0x0E * IState[2, column]) ^ (0x0B * IState[3, column])	| 0D 09 0E 0B |
+	State[3, column] = (0x0B * IState[0, column]) ^ (0x0D * IState[1, column]) ^ (0x09 * IState[2, column]) ^ (0x0E * IState[3, column])	| 0B 0D 09 0E |
+
+	Calculation Example
+
+		1 Column has four rows, for all AES128, AES192 and AES256
+		Before			After
+		db 13 53 45		8e 4d a1 bc
+
+		Multiplication matrix
+			| 2 3 1 1 |
+			| 1 2 3 1 |
+			| 1 1 2 3 |
+			| 3 1 1 2 |
+
+		db = db * 2 = 1101 1011 << 1
+				= 1011 0110 ^
+				  0001 1011				Xor with 1B because shift caused overflow
+				= 1010 1101 = ad
+		13 = 13 * 3 = 0001 0011 << 1	First multiply by 2
+					= 0010 0110 ^
+					  0001 0011			Xor with himself
+					= 0011 0101 = 35
+		53 = 53
+		45 = 45
+
+			ad ^ 35 ^ 53 ^ 45 = 1010 1101 ^		ad
+								0011 0101		35
+							  = 1001 1000 ^
+								0101 0011		53
+							  = 1100 1011 ^
+								0100 0101		45
+							  = 1000 1110 = 8e			Result
+		==================================
+		db = db
+		13 = 13 * 2 = 0001 0011 << 1
+					= 0010 0110 = 26
+		53 = 53 * 3 = 0101 0011 << 1	First multiply by 2
+					= 1010 0110 ^
+					  0101 0011			Xor with himself
+					= 1111 0101 = f5
+		45 = 45
+
+			db ^ 26 ^ f5 ^ 45 = 1101 1011 ^		db
+								0010 0110		26
+							  = 1111 1101 ^
+								1111 0101		f5
+							  = 0000 1000 ^
+								0100 0101		45
+							  = 0100 1101 = 4d			Result
+		==================================
+		db = db
+		13 = 13
+		53 = 53 * 2 = 0101 0011 << 1
+					= 1010 0110 = a6
+		45 = 45 * 3 = 0100 0101 << 1	First multiply by 2
+					= 1000 1010 ^
+					  0100 0101			Xor with himself
+					= 1100 1111 = cf
+
+			db ^ 13 ^ a6 ^ cf = 1101 1011 ^		db
+								0001 0011		13
+							  = 1100 1000 ^
+								1010 0110		a6
+							  = 0110 1110 ^
+								1100 1111		cf
+							  = 1010 0001 = a1			Result
+		==================================
+		db = db * 3 = 1101 1011 << 1
+					= 1011 0110 ^
+					  0001 1011			Xor with 1B because shift caused overflow
+					= 1010 1101 ^
+					  1101 1011			Xor with himself
+					= 0111 0110 = 76
+		13 = 13
+		53 = 53
+		45 = 45 * 2 = 0100 0101 << 1
+					= 1000 1010 = 8a
+
+			76 ^ 13 ^ 53 ^ 8a = 0111 0110 ^		76
+								0001 0011		13
+							  = 0110 0101 ^
+								0101 0011		53
+							  = 0011 0110 ^
+								1000 1010		8a
+							  = 1011 1100 = bc			Result
+
+	Reverse calculation example
+
+		Before			After
+		8e 4d a1 bc		db 13 53 45
+
+		Multiplication matrix
+			| E B D 9 |
+			| 9 E B D |
+			| D 9 E B |
+			| B D 9 E |
+
+			Multiplication by E = 1110 = 1000 ^ 0100 ^ 0010
+				First multiply by 8 = a 3 time multiplication by 2, every time the high bit is set xor with 0x1B.
+					Example 0x0E * 0xA1
+						0x0E = 0x08 ^ 0x04 ^ 0x10
+						First Multiply by 8, 3 time multiplication by 2
+							0xA1 = 1010 0001 Binary
+							1010 0001 << 1 = 0100 0010
+							Before shift high bit was set, so xor with 0x1B
+								0100 0010
+								0001 1011 0x1B
+								=========
+								0101 1001 First time (x2)
+
+							0101 1001 << 1 = 1011 0010 High bit was not set (x4)
+
+							1011 0010 << 1 = 0110 0100 high bit was set so xor with 0x1B
+								0110 0100
+								0001 1011 0x1B
+								=========
+								0111 1111 Third time (x8)
+
+						Take results from x8, x4 and x2 and xor them together
+						0111 1111 (x8)
+						1011 0010 (x4)
+						=========
+						1100 1101
+						0101 1001 (x2)
+						=========
+						1001 0100 0x94 This is the result
+
+			Multiplication by 0x0B = 1011 = 1000 ^ 0010 ^ 0001
+				Multiply by 8 same as above, then take values x8, x2 and x1 and xor them together
+
+			Multiplication by 0x0D = 1101 = 1000 ^ 0100 ^ 0001
+				Multiply by 8 same as above, then take values x8, x4 and x1 and xor them together
+
+			Multiplication by 0x09 = 1001 = 1000 ^ 0001
+				Multiply by 8 same as above, then take values x8 and x1 and xor them together
+
+			Before			After
+			8e 4d a1 bc		db 13 53 45
+
+			0x0E * 0x8E ^ 0x0B * 0x4D ^ 0x0D * 0xA1 ^ 0x09 * 0xBC = 0xDB
+			0x09 * 0x8E ^ 0x0E * 0x4D ^ 0x0B * 0xA1 ^ 0x0D * 0xBC = 0x13
+			0x0D * 0x8E ^ 0x09 * 0x4D ^ 0x0E * 0xA1 ^ 0x0B * 0xBC = 0x53
+			0x0B * 0x8E ^ 0x0D * 0x4D ^ 0x09 * 0xA1 ^ 0x0E * 0xBC = 0x45
