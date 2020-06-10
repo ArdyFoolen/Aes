@@ -28,11 +28,11 @@ namespace Aes.AF
     {
         #region Fields
 
-        private Stream Inner;
-        public AesKeySize KeySize { get; private set; }
-        private string Key { get; set; }
-        private byte[] ByteKey { get; set; }
-        private byte[][] RoundKey;
+        protected Stream Inner;
+        public AesKeySize KeySize { get; protected set; }
+        protected string Key { get; set; }
+        protected byte[] ByteKey { get; set; }
+        protected byte[][] RoundKey;
 
         #endregion
 
@@ -42,11 +42,7 @@ namespace Aes.AF
         {
             this.Inner = inner;
             this.KeySize = keySize;
-            int kSz = GetKeySize(KeySize);
-            if (kSz < key.Length)
-                this.Key = string.Format("{0, -16}", key.Substring(0, 16));
-            else
-                this.Key = string.Format("{0, -16}", key);
+            SetKey(key);
             ByteKey = Encoding.ASCII.GetBytes(this.Key);
             RoundKey = CtorRoundKey(keySize);
             ExpandRoundKey();
@@ -66,13 +62,83 @@ namespace Aes.AF
 
         #endregion
 
+        protected void SetKey(string key)
+        {
+            int kSz = GetKeySize(KeySize);
+            string keyFmt = string.Format("{{0, -{0}}}", kSz);
+            if (kSz < key.Length)
+                this.Key = string.Format(keyFmt, key.Substring(0, kSz));
+            else
+                this.Key = string.Format(keyFmt, key);
+        }
+
         #region ExpandRoundKey
 
-        private void ExpandRoundKey()
+        protected void ExpandRoundKey()
         {
             RoundKey[0] = ByteKey;
-            for (int round = 0; round < NumberOfRounds(KeySize); round++)
+            for (int round = 0; round < NumberOfKeyExpands(KeySize); round++)
                 RoundKey[round + 1] = KeyScedule(round, RoundKey[round]);
+
+            if ((int)KeySize > 128)
+                ReArrangeRoundKeys();
+        }
+
+        private void ReArrangeRoundKeys()
+        {
+            if (AesKeySize.Aes192.Equals(KeySize))
+                ReArrangeRoundKeys192();
+            else if (AesKeySize.Aes256.Equals(KeySize))
+                ReArrangeRoundKeys256();
+        }
+
+        private void ReArrangeRoundKeys192()
+        {
+            byte[] roundKey = new byte[16];
+
+            RoundKey[12] = new byte[16];
+            Array.Copy(RoundKey[8], 0, RoundKey[12], 0, 16);
+
+            int sourceIndex = 16;
+            int from = 7;
+            Action nextIndex = () => {
+                sourceIndex -= 8;
+                if (sourceIndex < 0)
+                    sourceIndex = 16;
+                if (sourceIndex == 16)
+                    from -= 1;
+            };
+            for (int r = 11; r >= 0; r--)
+            {
+                Array.Copy(RoundKey[from], sourceIndex, roundKey, 8, 8);
+                nextIndex();
+                Array.Copy(RoundKey[from], sourceIndex, roundKey, 0, 8);
+                nextIndex();
+                RoundKey[r] = new byte[16];
+                Array.Copy(roundKey, RoundKey[r], roundKey.Length);
+            }
+        }
+
+        private void ReArrangeRoundKeys256()
+        {
+            byte[] roundKey = new byte[16];
+
+            int sourceIndex = 0;
+            int from = 7;
+            Action nextIndex = () => {
+                sourceIndex -= 16;
+                if (sourceIndex < 0)
+                    sourceIndex = 16;
+                if (sourceIndex == 16)
+                    from -= 1;
+            };
+            for (int r = 14; r >= 0; r--)
+            {
+                Array.Copy(RoundKey[from], sourceIndex, roundKey, 0, 16);
+                nextIndex();
+                RoundKey[r] = new byte[16];
+                Array.Copy(roundKey, RoundKey[r], roundKey.Length);
+            }
         }
 
         private byte[] KeyScedule(int round, byte[] prevRoundKey)
@@ -89,7 +155,7 @@ namespace Aes.AF
                     frmdword = dwordNbr;
 
                 for (int i = 0; i < 4; i++)
-                    if ((int)KeySize > 1 && (frmdword % 4) == 3)
+                    if ((int)KeySize > 196 && (frmdword % 8) == 3)
                         rKey[todword * 4 + i] = (byte)(substituteByte(rKey[frmdword * 4 + i]) ^ prevRoundKey[todword * 4 + i]);
                     else
                         rKey[todword * 4 + i] = (byte)(rKey[frmdword * 4 + i] ^ prevRoundKey[todword * 4 + i]);
@@ -137,6 +203,13 @@ namespace Aes.AF
                     24 :
                     32;
 
+        private int NumberOfKeyExpands(AesKeySize keySize)
+            => AesKeySize.Aes128.Equals(keySize) ?
+                    10 :
+            AesKeySize.Aes192.Equals(keySize) ?
+                    8 :
+                    7;
+
         private int NumberOfRounds(AesKeySize keySize)
             => AesKeySize.Aes128.Equals(keySize) ?
                     10 :
@@ -150,14 +223,14 @@ namespace Aes.AF
                     6 :
                     8;
 
-        private byte[][] CtorRoundKey(AesKeySize keySize)
+        protected byte[][] CtorRoundKey(AesKeySize keySize)
             => new byte[NumberOfRounds(keySize) + 1][];
 
         #endregion
 
         #region AddRoundKey
 
-        public byte[] AddRoundKey(byte[] input, byte[] key)
+        protected virtual byte[] AddRoundKey(byte[] input, byte[] key)
         {
             byte[] output = new byte[input.Length];
             for (int i = 0; i < input.Length; i++)
@@ -192,7 +265,7 @@ namespace Aes.AF
             return rKey;
         }
 
-        private byte[] ByteSubstitution(byte[] input)
+        protected virtual byte[] ByteSubstitution(byte[] input)
         {
             byte[] output = new byte[input.Length];
             for (int i = 0; i < input.Length; i++)
@@ -213,7 +286,7 @@ namespace Aes.AF
 
         #region (Inverse)ShiftRows
 
-        private byte[] ShiftRows(byte[] input)
+        protected virtual byte[] ShiftRows(byte[] input)
         {
             byte[] output = new byte[input.Length];
 
@@ -250,7 +323,7 @@ namespace Aes.AF
 
         #region (Inverse)MixColumns
 
-        private byte[] MixColumns(byte[] input)
+        protected virtual byte[] MixColumns(byte[] input)
         {
             byte[] output = new byte[input.Length];
 
@@ -287,7 +360,7 @@ namespace Aes.AF
             return output;
         }
 
-        private byte[] EncryptRound(byte[] input, byte[] key)
+        protected virtual byte[] EncryptRound(byte[] input, byte[] key)
         {
             byte[] output = new byte[input.Length];
             output = ByteSubstitution(input);
@@ -307,16 +380,19 @@ namespace Aes.AF
             do
             {
                 bytesRead = this.Inner.Read(buffer, 0, blockLength);
-                if (bytesRead < blockLength)
-                    for (int i = bytesRead; i < blockLength; i++)
-                        buffer[i] = 0xFF;
+                //if (bytesRead < blockLength)
+                //    for (int i = bytesRead; i < blockLength; i++)
+                //        buffer[i] = 0xFF;
 
-                buffer = AddRoundKey(buffer, RoundKey[0]);
-                for (int round = 1; round < NumberOfRounds(KeySize); round++)
-                    buffer = EncryptRound(buffer, RoundKey[round]);
-                buffer = FinalEncrypt(buffer, RoundKey[NumberOfRounds(KeySize)]);
+                if (bytesRead > 0)
+                {
+                    buffer = AddRoundKey(buffer, RoundKey[0]);
+                    for (int round = 1; round < NumberOfRounds(KeySize); round++)
+                        buffer = EncryptRound(buffer, RoundKey[round]);
+                    buffer = FinalEncrypt(buffer, RoundKey[NumberOfRounds(KeySize)]);
 
-                writer.Write(buffer, 0, blockLength);
+                    writer.Write(buffer, 0, blockLength);
+                }
             } while (bytesRead == blockLength);
         }
 
@@ -367,10 +443,10 @@ namespace Aes.AF
                         buffer = DecryptRound(buffer, RoundKey[round]);
                     buffer = FinalDecrypt(buffer, RoundKey[0]);
 
-                    bytesRead = blockLength - 1;
-                    while (buffer[bytesRead] == 0xff)
-                        bytesRead--;
-                    writer.Write(buffer, 0, bytesRead + 1);
+                    //bytesRead = blockLength - 1;
+                    //while (bytesRead >= 0 && buffer[bytesRead] == 0xff)
+                    //    bytesRead--;
+                    writer.Write(buffer, 0, bytesRead);
                 }
             } while (bytesRead > 0);
         }
