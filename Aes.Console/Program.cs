@@ -12,17 +12,21 @@ namespace Aes.App
     {
         static void Main(string[] args)
         {
+            Func<int, int, byte> PaddingFunction = (NumberOfBytes, CurrentByte) => (byte)NumberOfBytes;
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
-            using (AF.Aes aes = new AF.Aes(stream, "Thats my Kung Fu"))
+            using (AF.Aes aes = new AF.Aes(stream, GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192))
             using (FileStream writer = new FileStream("EncryptedFile.txt", FileMode.Create))
             {
+                aes.PaddingFunction = PaddingFunction;
                 aes.Encrypt(writer);
             }
 
+            Func<byte[], int, int> RemovePaddingFunction = (Buffer, Length) => (int)Buffer[Length - 1];
             using (Stream stream = new FileStream("EncryptedFile.txt", FileMode.Open))
-            using (AF.Aes aes = new AF.Aes(stream, "Thats my Kung Fu"))
+            using (AF.Aes aes = new AF.Aes(stream, GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192))
             using (FileStream writer = new FileStream("DecryptedFile.txt", FileMode.Create))
             {
+                aes.RemovePaddingFunction = RemovePaddingFunction;
                 aes.Decrypt(writer);
             }
 
@@ -49,14 +53,16 @@ namespace Aes.App
                 aes.Encrypt(writer);
             }
 
-            using (Stream stream = new FileStream("EncryptedFile2.txt", FileMode.Open))
-            using (AF.Aes aes = new AF.Aes(stream, "000102030405060708090a0b0c0d0e0f"))
-            using (FileStream writer = new FileStream("DecryptedFile2.txt", FileMode.Create))
-            {
-                aes.Decrypt(writer);
-            }
-
             Console.ReadKey();
+        }
+
+        private static byte[] GetKey(string key, int keySize)
+        {
+            string keyFmt = string.Format("{{0, -{0}}}", keySize);
+            if (keySize < key.Length)
+                return Encoding.ASCII.GetBytes(string.Format(keyFmt, key.Substring(0, keySize)));
+            else
+                return Encoding.ASCII.GetBytes(string.Format(keyFmt, key));
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Aes.AF
     public enum AesKeySize
     {
         Aes128 = 128,
-        Aes192 = 196,
+        Aes192 = 192,
         Aes256 = 256
     };
 
@@ -38,46 +38,26 @@ namespace Aes.AF
 
         #region ctors
 
-        public Aes(Stream inner, string key, AesKeySize keySize = AesKeySize.Aes128)
-        {
-            this.Inner = inner;
-            this.KeySize = keySize;
-            SetKey(key);
-            ByteKey = Encoding.ASCII.GetBytes(this.Key);
-            RoundKey = CtorRoundKey(keySize);
-            ExpandRoundKey();
-        }
-
         public Aes(Stream inner, byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128)
         {
             this.Inner = inner;
             this.KeySize = keySize;
-            int kSz = GetKeySize(KeySize);
+            int kSz = GetKeySize();
             if (kSz != byteKey.Length)
                 throw new ArgumentException($"Key length not equal {kSz}");
             ByteKey = byteKey;
-            RoundKey = CtorRoundKey(keySize);
+            RoundKey = CtorRoundKey();
             ExpandRoundKey();
         }
 
         #endregion
-
-        protected void SetKey(string key)
-        {
-            int kSz = GetKeySize(KeySize);
-            string keyFmt = string.Format("{{0, -{0}}}", kSz);
-            if (kSz < key.Length)
-                this.Key = string.Format(keyFmt, key.Substring(0, kSz));
-            else
-                this.Key = string.Format(keyFmt, key);
-        }
 
         #region ExpandRoundKey
 
         protected void ExpandRoundKey()
         {
             RoundKey[0] = ByteKey;
-            for (int round = 0; round < NumberOfKeyExpands(KeySize); round++)
+            for (int round = 0; round < NumberOfKeyExpands(); round++)
                 RoundKey[round + 1] = KeyScedule(round, RoundKey[round]);
 
             if ((int)KeySize > 128)
@@ -143,7 +123,7 @@ namespace Aes.AF
 
         private byte[] KeyScedule(int round, byte[] prevRoundKey)
         {
-            int dwordNbr = GetNumberOfColumns(KeySize) - 1;
+            int dwordNbr = GetNumberOfColumns() - 1;
             byte[] rKey = circularByteLeftOfDword(dwordNbr, prevRoundKey);
             rKey = substituteByteOfDword(dwordNbr, rKey);
             rKey = addRoundConstant(round, dwordNbr, rKey);
@@ -155,7 +135,7 @@ namespace Aes.AF
                     frmdword = dwordNbr;
 
                 for (int i = 0; i < 4; i++)
-                    if ((int)KeySize > 196 && (frmdword % 8) == 3)
+                    if ((int)KeySize > 192 && (frmdword % 8) == 3)
                         rKey[todword * 4 + i] = (byte)(substituteByte(rKey[frmdword * 4 + i]) ^ prevRoundKey[todword * 4 + i]);
                     else
                         rKey[todword * 4 + i] = (byte)(rKey[frmdword * 4 + i] ^ prevRoundKey[todword * 4 + i]);
@@ -196,35 +176,51 @@ namespace Aes.AF
 
         #region Properties
 
-        private int GetKeySize(AesKeySize keySize)
-            => AesKeySize.Aes128.Equals(keySize) ?
+        /// <summary>
+        /// Padding function gets called NumberOfBytes times
+        /// First int, NumberOfBytes to pad
+        /// Second int, CurrentByte being pad
+        /// Return byte, the pad byte
+        /// </summary>
+        public Func<int, int, byte> PaddingFunction { get; set; } = null;
+
+        /// <summary>
+        /// Remove padding function called ones
+        /// First byte[], is the last buffer decrypted
+        /// Second int, buffer length
+        /// Return int, number of padded bytes to be removed from the buffer
+        /// </summary>
+        public Func<byte[], int, int> RemovePaddingFunction { get; set; } = null;
+
+        private int GetKeySize()
+            => AesKeySize.Aes128.Equals(KeySize) ?
                     16 :
-            AesKeySize.Aes192.Equals(keySize) ?
+            AesKeySize.Aes192.Equals(KeySize) ?
                     24 :
                     32;
 
-        private int NumberOfKeyExpands(AesKeySize keySize)
-            => AesKeySize.Aes128.Equals(keySize) ?
+        private int NumberOfKeyExpands()
+            => AesKeySize.Aes128.Equals(KeySize) ?
                     10 :
-            AesKeySize.Aes192.Equals(keySize) ?
+            AesKeySize.Aes192.Equals(KeySize) ?
                     8 :
                     7;
 
-        private int NumberOfRounds(AesKeySize keySize)
-            => AesKeySize.Aes128.Equals(keySize) ?
+        private int NumberOfRounds()
+            => AesKeySize.Aes128.Equals(KeySize) ?
                     10 :
-            AesKeySize.Aes192.Equals(keySize) ?
+            AesKeySize.Aes192.Equals(KeySize) ?
                     12 :
                     14;
-        private int GetNumberOfColumns(AesKeySize keySize)
-            => AesKeySize.Aes128.Equals(keySize) ?
+        private int GetNumberOfColumns()
+            => AesKeySize.Aes128.Equals(KeySize) ?
                     4 :
-            AesKeySize.Aes192.Equals(keySize) ?
+            AesKeySize.Aes192.Equals(KeySize) ?
                     6 :
                     8;
 
-        protected byte[][] CtorRoundKey(AesKeySize keySize)
-            => new byte[NumberOfRounds(keySize) + 1][];
+        protected byte[][] CtorRoundKey()
+            => new byte[NumberOfRounds() + 1][];
 
         #endregion
 
@@ -330,7 +326,7 @@ namespace Aes.AF
             for (int row = 0; row < 4; row++)
                 //for (int column = 0; column < GetNumberOfColumns(KeySize); column++)
                 for (int column = 0; column < 4; column++)
-                    output[row + 4 * column] = MixColumnFormulas.Get[row](column, input, GMul);
+                    output[row + 4 * column] = MixColumnFormulas.Get[row](column, input);
 
             return output;
         }
@@ -342,7 +338,7 @@ namespace Aes.AF
             for (int row = 0; row < 4; row++)
                 //for (int column = 0; column < GetNumberOfColumns(KeySize); column++)
                 for (int column = 0; column < 4; column++)
-                    output[row + 4 * column] = MixColumnFormulas.Inverse[row](column, input, GMul);
+                    output[row + 4 * column] = MixColumnFormulas.Inverse[row](column, input);
 
             return output;
         }
@@ -380,32 +376,30 @@ namespace Aes.AF
             do
             {
                 bytesRead = this.Inner.Read(buffer, 0, blockLength);
-                //if (bytesRead < blockLength)
-                //    for (int i = bytesRead; i < blockLength; i++)
-                //        buffer[i] = 0xFF;
 
                 if (bytesRead > 0)
                 {
+                    if (bytesRead < blockLength && PaddingFunction != null)
+                        for (int i = bytesRead; i < blockLength; i++)
+                            buffer[i] = PaddingFunction(blockLength - bytesRead, i - bytesRead);
+
                     buffer = AddRoundKey(buffer, RoundKey[0]);
-                    for (int round = 1; round < NumberOfRounds(KeySize); round++)
+                    for (int round = 1; round < NumberOfRounds(); round++)
                         buffer = EncryptRound(buffer, RoundKey[round]);
-                    buffer = FinalEncrypt(buffer, RoundKey[NumberOfRounds(KeySize)]);
+                    buffer = FinalEncrypt(buffer, RoundKey[NumberOfRounds()]);
 
                     writer.Write(buffer, 0, blockLength);
                 }
+                else if (PaddingFunction != null)
+                    for (int i = bytesRead; i < blockLength; i++)
+                        buffer[i] = PaddingFunction(blockLength - bytesRead, i - bytesRead);
+
             } while (bytesRead == blockLength);
         }
 
         #endregion
 
         #region Decrypt
-
-        private byte[] BeginDecrypt(byte[] input, byte[] key)
-        {
-            byte[] output = new byte[input.Length];
-            output = AddRoundKey(input, key);
-            return output;
-        }
 
         private byte[] FinalDecrypt(byte[] input, byte[] key)
         {
@@ -438,14 +432,14 @@ namespace Aes.AF
                 bytesRead = this.Inner.Read(buffer, 0, blockLength);
                 if (bytesRead > 0)
                 {
-                    buffer = BeginDecrypt(buffer, RoundKey[NumberOfRounds(KeySize)]);
-                    for (int round = NumberOfRounds(KeySize) - 1; round > 0; round--)
+                    buffer = AddRoundKey(buffer, RoundKey[NumberOfRounds()]);
+                    for (int round = NumberOfRounds() - 1; round > 0; round--)
                         buffer = DecryptRound(buffer, RoundKey[round]);
                     buffer = FinalDecrypt(buffer, RoundKey[0]);
 
-                    //bytesRead = blockLength - 1;
-                    //while (bytesRead >= 0 && buffer[bytesRead] == 0xff)
-                    //    bytesRead--;
+                    if (Eof && RemovePaddingFunction != null)
+                        bytesRead = buffer.Length - RemovePaddingFunction(buffer, buffer.Length);
+
                     writer.Write(buffer, 0, bytesRead);
                 }
             } while (bytesRead > 0);
@@ -453,47 +447,19 @@ namespace Aes.AF
 
         #endregion
 
-        #region Galois Field (256) Multiplication of two Bytes
-
-        // TestVectors
-        // Before       After
-        // db 13 53 45  8e 4d a1 bc
-        // f2 0a 22 5c  9f dc 58 9d
-        // 01 01 01 01  01 01 01 01
-        // c6 c6 c6 c6  c6 c6 c6 c6
-        // d4 d4 d4 d5  d5 d5 d7 d6
-        // 2d 26 31 4c  4d 7e bd f8
-
-        /// <summary>
-        /// Galois Field (256) Multiplication of two Bytes
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        private byte GMul(byte a, byte b)
-        {
-            byte p = 0;
-
-            for (int counter = 0; counter < 8; counter++)
-            {
-                if ((b & 1) != 0)
-                    p ^= a;
-
-                bool isHighBitSet = (a & 0x80) != 0;
-                a <<= 1;
-
-                if (isHighBitSet)
-                    a ^= 0x1B; /* x^8 + x^4 + x^3 + x + 1 */
-
-                b >>= 1;
-            }
-
-            return p;
-        }
-
-        #endregion
-
         #region Stream Implementation
+
+        public bool Eof
+        {
+            get
+            {
+                long pos = this.Inner.Position;
+                byte[] test = new byte[1];
+                int bytesRead = this.Inner.Read(test, 0, 1);
+                this.Inner.Seek(pos, SeekOrigin.Begin);
+                return bytesRead == 0;
+            }
+        }
 
         public override bool CanRead => this.Inner.CanRead;
 
