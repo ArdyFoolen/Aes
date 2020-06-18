@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 
 // See link https://www.comparitech.com/blog/information-security/what-is-aes-encryption/
@@ -24,7 +25,13 @@ namespace Aes.AF
         Aes256 = 256
     };
 
-    public class Aes : Stream, IDisposable
+    public enum AesEnDecrypt
+    {
+        Encrypt,
+        Decrypt
+    }
+
+    public class Aes : Stream, ICryptoTransform, IDisposable
     {
         #region Fields
 
@@ -34,12 +41,14 @@ namespace Aes.AF
         protected byte[] ByteKey { get; set; }
         protected byte[][] RoundKey;
 
+        public AesEnDecrypt EnDecrypt { get; protected set; }
         #endregion
 
         #region ctors
 
-        public Aes(Stream inner, byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128)
+        public Aes(Stream inner, byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128, AesEnDecrypt enDecrypt = AesEnDecrypt.Encrypt)
         {
+            this.EnDecrypt = enDecrypt;
             this.Inner = inner;
             this.KeySize = keySize;
             int kSz = GetKeySize();
@@ -81,7 +90,8 @@ namespace Aes.AF
 
             int sourceIndex = 16;
             int from = 7;
-            Action nextIndex = () => {
+            Action nextIndex = () =>
+            {
                 sourceIndex -= 8;
                 if (sourceIndex < 0)
                     sourceIndex = 16;
@@ -105,7 +115,8 @@ namespace Aes.AF
 
             int sourceIndex = 0;
             int from = 7;
-            Action nextIndex = () => {
+            Action nextIndex = () =>
+            {
                 sourceIndex -= 16;
                 if (sourceIndex < 0)
                     sourceIndex = 16;
@@ -370,31 +381,42 @@ namespace Aes.AF
         {
             int bytesRead;
             //int blockLength = GetKeySize(KeySize);
-            int blockLength = 16;
-            byte[] buffer = new byte[blockLength];
+            //int blockLength = 16;
+            byte[] buffer = new byte[InputBlockSize];
 
             do
             {
-                bytesRead = this.Inner.Read(buffer, 0, blockLength);
+                bytesRead = this.Inner.Read(buffer, 0, InputBlockSize);
 
                 if (bytesRead > 0)
                 {
-                    if (bytesRead < blockLength && PaddingFunction != null)
-                        for (int i = bytesRead; i < blockLength; i++)
-                            buffer[i] = PaddingFunction(blockLength - bytesRead, i - bytesRead);
+                    if (bytesRead < InputBlockSize && PaddingFunction != null)
+                        for (int i = bytesRead; i < InputBlockSize; i++)
+                            buffer[i] = PaddingFunction(InputBlockSize - bytesRead, i - bytesRead);
 
                     buffer = AddRoundKey(buffer, RoundKey[0]);
                     for (int round = 1; round < NumberOfRounds(); round++)
                         buffer = EncryptRound(buffer, RoundKey[round]);
                     buffer = FinalEncrypt(buffer, RoundKey[NumberOfRounds()]);
 
-                    writer.Write(buffer, 0, blockLength);
+                    writer.Write(buffer, 0, InputBlockSize);
                 }
                 else if (PaddingFunction != null)
-                    for (int i = bytesRead; i < blockLength; i++)
-                        buffer[i] = PaddingFunction(blockLength - bytesRead, i - bytesRead);
+                    for (int i = bytesRead; i < InputBlockSize; i++)
+                        buffer[i] = PaddingFunction(InputBlockSize - bytesRead, i - bytesRead);
 
-            } while (bytesRead == blockLength);
+            } while (bytesRead == InputBlockSize);
+        }
+
+        private void Encrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputOffset)
+        {
+            byte[] buffer = new byte[InputBlockSize];
+            Array.Copy(inputBuffer, inputOffset, buffer, 0, InputBlockSize);
+            buffer = AddRoundKey(buffer, RoundKey[0]);
+            for (int round = 1; round < NumberOfRounds(); round++)
+                buffer = EncryptRound(buffer, RoundKey[round]);
+            buffer = FinalEncrypt(buffer, RoundKey[NumberOfRounds()]);
+            Array.Copy(buffer, 0, outputBuffer, outputOffset, OutputBlockSize);
         }
 
         #endregion
@@ -424,12 +446,12 @@ namespace Aes.AF
         {
             int bytesRead;
             //int blockLength = GetKeySize(KeySize);
-            int blockLength = 16;
-            byte[] buffer = new byte[blockLength];
+            //int blockLength = 16;
+            byte[] buffer = new byte[InputBlockSize];
 
             do
             {
-                bytesRead = this.Inner.Read(buffer, 0, blockLength);
+                bytesRead = this.Inner.Read(buffer, 0, InputBlockSize);
                 if (bytesRead > 0)
                 {
                     buffer = AddRoundKey(buffer, RoundKey[NumberOfRounds()]);
@@ -443,6 +465,113 @@ namespace Aes.AF
                     writer.Write(buffer, 0, bytesRead);
                 }
             } while (bytesRead > 0);
+        }
+
+        private void Decrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputOffset)
+        {
+            byte[] buffer = new byte[InputBlockSize];
+            Array.Copy(inputBuffer, inputOffset, buffer, 0, InputBlockSize);
+
+            buffer = AddRoundKey(buffer, RoundKey[NumberOfRounds()]);
+            for (int round = NumberOfRounds() - 1; round > 0; round--)
+                buffer = DecryptRound(buffer, RoundKey[round]);
+            buffer = FinalDecrypt(buffer, RoundKey[0]);
+
+            Array.Copy(buffer, 0, outputBuffer, outputOffset, OutputBlockSize);
+        }
+
+        #endregion
+
+        #region ICryptoTransform
+
+        byte[] lastBuffer = null;
+        bool isFirstTransfer = true;
+        private void ResetTransfer()
+        {
+            lastBuffer = null;
+            isFirstTransfer = true;
+        }
+
+        public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
+        {
+            int returnCount = inputCount;
+            if (AesEnDecrypt.Decrypt.Equals(EnDecrypt))
+                if (isFirstTransfer)
+                {
+                    lastBuffer = new byte[OutputBlockSize];
+                    returnCount -= OutputBlockSize;
+                }
+                else
+                {
+                    Array.Copy(lastBuffer, 0, outputBuffer, 0, OutputBlockSize);
+                    outputOffset += OutputBlockSize;
+                }
+
+            for (int i = 0; i < inputCount; i += OutputBlockSize)
+                if (AesEnDecrypt.Encrypt.Equals(EnDecrypt))
+                    Encrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
+                else
+                {
+                    if (outputOffset >= outputBuffer.Length)
+                        Decrypt(inputBuffer, inputOffset + i, lastBuffer, 0);
+                    else
+                        Decrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset);
+
+                    outputOffset += OutputBlockSize;
+                }
+
+            if (AesEnDecrypt.Decrypt.Equals(EnDecrypt) && isFirstTransfer)
+            {
+                Array.Copy(outputBuffer, outputBuffer.Length - OutputBlockSize, lastBuffer, 0, OutputBlockSize);
+                isFirstTransfer = false;
+            }
+
+            return returnCount;
+        }
+
+        public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
+        {
+            if (AesEnDecrypt.Encrypt.Equals(EnDecrypt))
+            {
+                if (PaddingFunction != null)
+                    for (int i = inputCount; i < InputBlockSize; i++)
+                        inputBuffer[i] = PaddingFunction(InputBlockSize - inputCount, i - inputCount);
+
+                byte[] buffer = new byte[OutputBlockSize];
+                Encrypt(inputBuffer, inputOffset, buffer, 0);
+                return buffer;
+            }
+            else
+            {
+                if (RemovePaddingFunction == null)
+                    return lastBuffer;
+
+                int padding = OutputBlockSize - RemovePaddingFunction(lastBuffer, OutputBlockSize);
+                byte[] output = new byte[padding];
+                Array.Copy(lastBuffer, 0, output, 0, padding);
+                ResetTransfer();
+                return output;
+            }
+        }
+
+        public bool CanReuseTransform
+        {
+            get { return true; }
+        }
+
+        public bool CanTransformMultipleBlocks
+        {
+            get { return true; }
+        }
+
+        public int InputBlockSize
+        {
+            get { return 16; }
+        }
+
+        public int OutputBlockSize
+        {
+            get { return 16; }
         }
 
         #endregion
