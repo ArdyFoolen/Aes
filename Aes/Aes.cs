@@ -46,10 +46,22 @@ namespace Aes.AF
 
         #region ctors
 
-        public Aes(Stream inner, byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128, AesEnDecrypt enDecrypt = AesEnDecrypt.Encrypt)
+        protected Aes(Stream inner, byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128, AesEnDecrypt enDecrypt = AesEnDecrypt.Encrypt)
         {
             this.EnDecrypt = enDecrypt;
             this.Inner = inner;
+            this.KeySize = keySize;
+            int kSz = GetKeySize();
+            if (kSz != byteKey.Length)
+                throw new ArgumentException($"Key length not equal {kSz}");
+            ByteKey = byteKey;
+            RoundKey = CtorRoundKey();
+            ExpandRoundKey();
+        }
+
+        public Aes(byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128, AesEnDecrypt enDecrypt = AesEnDecrypt.Encrypt)
+        {
+            this.EnDecrypt = enDecrypt;
             this.KeySize = keySize;
             int kSz = GetKeySize();
             if (kSz != byteKey.Length)
@@ -648,7 +660,7 @@ namespace Aes.AF
 
             if (disposing)
             {
-                this.Inner.Dispose();
+                this.Inner?.Dispose();
                 // Dispose managed state (managed objects).
                 _safeHandle?.Dispose();
             }
