@@ -22,13 +22,7 @@ namespace Aes.App
             using (var encryptStream = new CryptoStream(writer, aes, CryptoStreamMode.Write))
             {
                 aes.PaddingFunction = PaddingFunction;
-                byte[] plaintext = new byte[0x400];
-                int bytesRead;
-                do
-                {
-                    bytesRead = stream.Read(plaintext, 0, 0x400);
-                    encryptStream.Write(plaintext, 0, bytesRead);
-                } while (bytesRead == 0x400);
+                encryptStream.WriteFrom(stream);
             }
 
             using (Stream stream = new FileStream("EncryptedFile.txt", FileMode.Open))
@@ -37,13 +31,7 @@ namespace Aes.App
             using (var encryptStream = new CryptoStream(stream, aes, CryptoStreamMode.Read))
             {
                 aes.RemovePaddingFunction = RemovePaddingFunction;
-                byte[] ciphertext = new byte[0x400];
-                int bytesRead;
-                do
-                {
-                    bytesRead = encryptStream.Read(ciphertext, 0, ciphertext.Length);
-                    writer.Write(ciphertext, 0, bytesRead);
-                } while (bytesRead == 0x400);
+                encryptStream.ReadInto(writer);
             }
 
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
@@ -52,13 +40,7 @@ namespace Aes.App
             using (var encryptStream = new CryptoStream(writer, aes, CryptoStreamMode.Write))
             {
                 aes.PaddingFunction = PaddingFunction;
-                byte[] plaintext = new byte[0x400];
-                int bytesRead;
-                do
-                {
-                    bytesRead = stream.Read(plaintext, 0, 0x400);
-                    encryptStream.Write(plaintext, 0, bytesRead);
-                } while (bytesRead == 0x400);
+                encryptStream.WriteFrom(stream);
             }
 
             using (Stream stream = new FileStream("EncryptedFile.txt", FileMode.Open))
@@ -67,13 +49,7 @@ namespace Aes.App
             using (var encryptStream = new CryptoStream(stream, aes, CryptoStreamMode.Read))
             {
                 aes.RemovePaddingFunction = RemovePaddingFunction;
-                byte[] ciphertext = new byte[0x400];
-                int bytesRead;
-                do
-                {
-                    bytesRead = encryptStream.Read(ciphertext, 0, ciphertext.Length);
-                    writer.Write(ciphertext, 0, bytesRead);
-                } while (bytesRead == 0x400);
+                encryptStream.ReadInto(writer);
             }
 
             Console.ReadKey();
