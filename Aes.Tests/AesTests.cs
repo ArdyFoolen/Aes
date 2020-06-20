@@ -27,7 +27,7 @@ namespace Aes.Tests
         }
 
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecrypt")]
-        public void EnDecrypt_EachStep_ShouldBeCorrect((AesKeySize KeySize, byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream, Stream> Crypt) values)
+        public void EnDecrypt_EachStep_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream, Stream> Crypt) values)
         {
             AesContext aes = new AesContext();
             using (Stream inStream = new MemoryStream())
