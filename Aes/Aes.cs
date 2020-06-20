@@ -31,11 +31,10 @@ namespace Aes.AF
         Decrypt
     }
 
-    public class Aes : Stream, ICryptoTransform, IDisposable
+    public partial class Aes
     {
         #region Fields
 
-        protected Stream Inner;
         public AesKeySize KeySize { get; protected set; }
         protected string Key { get; set; }
         protected byte[] ByteKey { get; set; }
@@ -46,20 +45,9 @@ namespace Aes.AF
 
         #region ctors
 
-        protected Aes(Stream inner, byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128, AesEnDecrypt enDecrypt = AesEnDecrypt.Encrypt)
-        {
-            this.EnDecrypt = enDecrypt;
-            this.Inner = inner;
-            this.KeySize = keySize;
-            int kSz = GetKeySize();
-            if (kSz != byteKey.Length)
-                throw new ArgumentException($"Key length not equal {kSz}");
-            ByteKey = byteKey;
-            RoundKey = CtorRoundKey();
-            ExpandRoundKey();
-        }
+        public Aes() { }
 
-        public Aes(byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128, AesEnDecrypt enDecrypt = AesEnDecrypt.Encrypt)
+        protected Aes(byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128, AesEnDecrypt enDecrypt = AesEnDecrypt.Encrypt)
         {
             this.EnDecrypt = enDecrypt;
             this.KeySize = keySize;
@@ -245,6 +233,16 @@ namespace Aes.AF
         protected byte[][] CtorRoundKey()
             => new byte[NumberOfRounds() + 1][];
 
+        private int InputBlockSize
+        {
+            get { return 16; }
+        }
+
+        private int OutputBlockSize
+        {
+            get { return 16; }
+        }
+
         #endregion
 
         #region AddRoundKey
@@ -389,37 +387,6 @@ namespace Aes.AF
             return output;
         }
 
-        public void Encrypt(Stream writer)
-        {
-            int bytesRead;
-            //int blockLength = GetKeySize(KeySize);
-            //int blockLength = 16;
-            byte[] buffer = new byte[InputBlockSize];
-
-            do
-            {
-                bytesRead = this.Inner.Read(buffer, 0, InputBlockSize);
-
-                if (bytesRead > 0)
-                {
-                    if (bytesRead < InputBlockSize && PaddingFunction != null)
-                        for (int i = bytesRead; i < InputBlockSize; i++)
-                            buffer[i] = PaddingFunction(InputBlockSize - bytesRead, i - bytesRead);
-
-                    buffer = AddRoundKey(buffer, RoundKey[0]);
-                    for (int round = 1; round < NumberOfRounds(); round++)
-                        buffer = EncryptRound(buffer, RoundKey[round]);
-                    buffer = FinalEncrypt(buffer, RoundKey[NumberOfRounds()]);
-
-                    writer.Write(buffer, 0, InputBlockSize);
-                }
-                else if (PaddingFunction != null)
-                    for (int i = bytesRead; i < InputBlockSize; i++)
-                        buffer[i] = PaddingFunction(InputBlockSize - bytesRead, i - bytesRead);
-
-            } while (bytesRead == InputBlockSize);
-        }
-
         private void Encrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputOffset)
         {
             byte[] buffer = new byte[InputBlockSize];
@@ -454,31 +421,6 @@ namespace Aes.AF
             return output;
         }
 
-        public void Decrypt(Stream writer)
-        {
-            int bytesRead;
-            //int blockLength = GetKeySize(KeySize);
-            //int blockLength = 16;
-            byte[] buffer = new byte[InputBlockSize];
-
-            do
-            {
-                bytesRead = this.Inner.Read(buffer, 0, InputBlockSize);
-                if (bytesRead > 0)
-                {
-                    buffer = AddRoundKey(buffer, RoundKey[NumberOfRounds()]);
-                    for (int round = NumberOfRounds() - 1; round > 0; round--)
-                        buffer = DecryptRound(buffer, RoundKey[round]);
-                    buffer = FinalDecrypt(buffer, RoundKey[0]);
-
-                    if (Eof && RemovePaddingFunction != null)
-                        bytesRead = buffer.Length - RemovePaddingFunction(buffer, buffer.Length);
-
-                    writer.Write(buffer, 0, bytesRead);
-                }
-            } while (bytesRead > 0);
-        }
-
         private void Decrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputOffset)
         {
             byte[] buffer = new byte[InputBlockSize];
@@ -490,182 +432,6 @@ namespace Aes.AF
             buffer = FinalDecrypt(buffer, RoundKey[0]);
 
             Array.Copy(buffer, 0, outputBuffer, outputOffset, OutputBlockSize);
-        }
-
-        #endregion
-
-        #region ICryptoTransform
-
-        byte[] lastBuffer = null;
-        bool isFirstTransfer = true;
-        private void ResetTransfer()
-        {
-            lastBuffer = null;
-            isFirstTransfer = true;
-        }
-
-        public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
-        {
-            int returnCount = inputCount;
-            if (AesEnDecrypt.Decrypt.Equals(EnDecrypt))
-                if (isFirstTransfer)
-                {
-                    lastBuffer = new byte[OutputBlockSize];
-                    returnCount -= OutputBlockSize;
-                }
-                else
-                {
-                    Array.Copy(lastBuffer, 0, outputBuffer, 0, OutputBlockSize);
-                    outputOffset += OutputBlockSize;
-                }
-
-            for (int i = 0; i < inputCount; i += OutputBlockSize)
-                if (AesEnDecrypt.Encrypt.Equals(EnDecrypt))
-                    Encrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
-                else
-                {
-                    if (outputOffset >= outputBuffer.Length)
-                        Decrypt(inputBuffer, inputOffset + i, lastBuffer, 0);
-                    else
-                        Decrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset);
-
-                    outputOffset += OutputBlockSize;
-                }
-
-            if (AesEnDecrypt.Decrypt.Equals(EnDecrypt) && isFirstTransfer)
-            {
-                Array.Copy(outputBuffer, outputBuffer.Length - OutputBlockSize, lastBuffer, 0, OutputBlockSize);
-                isFirstTransfer = false;
-            }
-
-            return returnCount;
-        }
-
-        public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
-        {
-            if (AesEnDecrypt.Encrypt.Equals(EnDecrypt))
-            {
-                if (PaddingFunction != null)
-                    for (int i = inputCount; i < InputBlockSize; i++)
-                        inputBuffer[i] = PaddingFunction(InputBlockSize - inputCount, i - inputCount);
-
-                byte[] buffer = new byte[OutputBlockSize];
-                Encrypt(inputBuffer, inputOffset, buffer, 0);
-                return buffer;
-            }
-            else
-            {
-                if (RemovePaddingFunction == null)
-                    return lastBuffer;
-
-                int padding = OutputBlockSize - RemovePaddingFunction(lastBuffer, OutputBlockSize);
-                byte[] output = new byte[padding];
-                Array.Copy(lastBuffer, 0, output, 0, padding);
-                ResetTransfer();
-                return output;
-            }
-        }
-
-        public bool CanReuseTransform
-        {
-            get { return true; }
-        }
-
-        public bool CanTransformMultipleBlocks
-        {
-            get { return true; }
-        }
-
-        public int InputBlockSize
-        {
-            get { return 16; }
-        }
-
-        public int OutputBlockSize
-        {
-            get { return 16; }
-        }
-
-        #endregion
-
-        #region Stream Implementation
-
-        public bool Eof
-        {
-            get
-            {
-                long pos = this.Inner.Position;
-                byte[] test = new byte[1];
-                int bytesRead = this.Inner.Read(test, 0, 1);
-                this.Inner.Seek(pos, SeekOrigin.Begin);
-                return bytesRead == 0;
-            }
-        }
-
-        public override bool CanRead => this.Inner.CanRead;
-
-        public override bool CanSeek => this.Inner.CanSeek;
-
-        public override bool CanWrite => this.Inner.CanWrite;
-
-        public override long Length => this.Inner.Length;
-
-        public override long Position { get => this.Inner.Position; set => this.Inner.Position = value; }
-
-        public override void Flush()
-        {
-            this.Inner.Flush();
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return this.Inner.Read(buffer, offset, count);
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return this.Inner.Seek(offset, origin);
-        }
-
-        public override void SetLength(long value)
-        {
-            this.Inner.SetLength(value);
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            this.Inner.Write(buffer, offset, count);
-        }
-
-        #endregion
-
-        #region IDisposable
-
-        // To detect redundant calls
-        private bool _disposed = false;
-
-        // Instantiate a SafeHandle instance.
-        private SafeHandle _safeHandle = new SafeFileHandle(IntPtr.Zero, true);
-
-        // Public implementation of Dispose pattern callable by consumers.
-        public new void Dispose() => Dispose(true);
-
-        // Protected implementation of Dispose pattern.
-        protected override void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                this.Inner?.Dispose();
-                // Dispose managed state (managed objects).
-                _safeHandle?.Dispose();
-            }
-
-            _disposed = true;
         }
 
         #endregion

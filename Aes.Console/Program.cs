@@ -16,39 +16,35 @@ namespace Aes.App
             Func<int, int, byte> PaddingFunction = (NumberOfBytes, CurrentByte) => (byte)NumberOfBytes;
             Func<byte[], int, int> RemovePaddingFunction = (Buffer, Length) => (int)Buffer[Length - 1];
 
+            AF.Aes aes = new AF.Aes();
+            aes.PaddingFunction = PaddingFunction;
+            aes.RemovePaddingFunction = RemovePaddingFunction;
+
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
-            using (AF.Aes aes = new AF.Aes(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192))
             using (FileStream writer = new FileStream("EncryptedFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(writer, aes, CryptoStreamMode.Write))
+            using (var encryptStream = new CryptoStream(writer, aes.CreateEncryptor(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192), CryptoStreamMode.Write))
             {
-                aes.PaddingFunction = PaddingFunction;
                 encryptStream.WriteFrom(stream);
             }
 
             using (Stream stream = new FileStream("EncryptedFile.txt", FileMode.Open))
-            using (AF.Aes aes = new AF.Aes(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192))
             using (FileStream writer = new FileStream("DecryptedFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(stream, aes, CryptoStreamMode.Read))
+            using (var encryptStream = new CryptoStream(stream, aes.CreateDecryptor(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192), CryptoStreamMode.Read))
             {
-                aes.RemovePaddingFunction = RemovePaddingFunction;
                 encryptStream.ReadInto(writer);
             }
 
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
-            using (AF.Aes aes = new AF.Aes(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192))
             using (FileStream writer = new FileStream("EncryptedFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(writer, aes, CryptoStreamMode.Write))
+            using (var encryptStream = new CryptoStream(writer, aes.CreateEncryptor(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192), CryptoStreamMode.Write))
             {
-                aes.PaddingFunction = PaddingFunction;
                 encryptStream.WriteFrom(stream);
             }
 
             using (Stream stream = new FileStream("EncryptedFile.txt", FileMode.Open))
-            using (AF.Aes aes = new AF.Aes(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192, AesEnDecrypt.Decrypt))
             using (FileStream writer = new FileStream("DecryptedFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(stream, aes, CryptoStreamMode.Read))
+            using (var encryptStream = new CryptoStream(stream, aes.CreateDecryptor(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192), CryptoStreamMode.Read))
             {
-                aes.RemovePaddingFunction = RemovePaddingFunction;
                 encryptStream.ReadInto(writer);
             }
 

@@ -10,7 +10,8 @@ namespace Aes.Tests
 {
     public class AesContext : Aes.AF.Aes
     {
-        public AesContext(Stream inner, byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128) : base(inner, byteKey, keySize) { }
+        public AesContext() : base() { }
+        public AesContext(byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128) : base(byteKey, keySize) { }
 
         public int RoundKeyLength
         {

@@ -16,8 +16,8 @@ namespace Aes.Tests
         [TestCaseSource(typeof(AesSourceHelper), "RoundKeyExpand")]
         public void RoundKey_Expanded_Correct((byte[] Key, AesKeySize KeySize, byte[][] ExpectedRoundKeys) values)
         {
+            AesContext aes = new AesContext(values.Key, values.KeySize);
             using (Stream stream = new MemoryStream())
-            using (AesContext aes = new AesContext(stream, values.Key, values.KeySize))
             {
                 // Assert
                 Assert.AreEqual(values.ExpectedRoundKeys.Length, aes.RoundKeyLength);
@@ -27,23 +27,23 @@ namespace Aes.Tests
         }
 
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecrypt")]
-        public void EnDecrypt_EachStep_ShouldBeCorrect((AesKeySize KeySize, byte[] Key, byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream> Crypt) values)
+        public void EnDecrypt_EachStep_ShouldBeCorrect((AesKeySize KeySize, byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream, Stream> Crypt) values)
         {
-            using (Stream stream = new MemoryStream())
-            using (AesContext aes = new AesContext(stream, values.Key, values.KeySize))
+            AesContext aes = new AesContext();
+            using (Stream inStream = new MemoryStream())
             {
                 // Arrange
-                stream.Write(values.In, 0, 16);
-                stream.Seek(0, SeekOrigin.Begin);
+                inStream.Write(values.In, 0, 16);
+                inStream.Seek(0, SeekOrigin.Begin);
 
                 // Act
-                Stream writer = new MemoryStream();
-                values.Crypt(aes, writer);
+                Stream outStream = new MemoryStream();
+                values.Crypt(aes, outStream, inStream);
 
                 // Assert
-                writer.Seek(0, SeekOrigin.Begin);
+                outStream.Seek(0, SeekOrigin.Begin);
                 byte[] actual = new byte[17];
-                int bytesRead = writer.Read(actual, 0, 17);
+                int bytesRead = outStream.Read(actual, 0, 17);
 
                 Assert.AreEqual(16, bytesRead);
                 Assert.That(values.Out.Select((b, i) => new { value = b, index = i }).All(a => actual[a.index] == a.value));
