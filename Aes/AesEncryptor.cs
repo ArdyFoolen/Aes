@@ -11,7 +11,7 @@ namespace Aes.AF
     {
         public ICryptoTransform CreateEncryptor(byte[] key, AesKeySize keySize)
         {
-            Aes aes = new Aes(key, keySize, AesEnDecrypt.Encrypt);
+            Aes aes = new Aes(key, keySize);
             aes.PaddingFunction = this.PaddingFunction;
             return new AesEncryptor(aes);
         }
@@ -22,7 +22,6 @@ namespace Aes.AF
             public AesEncryptor(Aes aes)
             {
                 this.Aes = aes;
-                this.Aes.EnDecrypt = AesEnDecrypt.Encrypt;
             }
 
             #region ICryptoTransform

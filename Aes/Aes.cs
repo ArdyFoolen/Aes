@@ -25,12 +25,6 @@ namespace Aes.AF
         Aes256 = 256
     };
 
-    public enum AesEnDecrypt
-    {
-        Encrypt,
-        Decrypt
-    }
-
     public partial class Aes
     {
         #region Fields
@@ -40,16 +34,14 @@ namespace Aes.AF
         protected byte[] ByteKey { get; set; }
         protected byte[][] RoundKey;
 
-        public AesEnDecrypt EnDecrypt { get; protected set; }
         #endregion
 
         #region ctors
 
         public Aes() { }
 
-        protected Aes(byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128, AesEnDecrypt enDecrypt = AesEnDecrypt.Encrypt)
+        protected Aes(byte[] byteKey, AesKeySize keySize = AesKeySize.Aes128)
         {
-            this.EnDecrypt = enDecrypt;
             this.KeySize = keySize;
             int kSz = GetKeySize();
             if (kSz != byteKey.Length)
