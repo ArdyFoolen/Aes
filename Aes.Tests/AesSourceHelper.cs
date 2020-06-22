@@ -39,7 +39,7 @@ namespace Aes.Tests
 
         private static void Encrypt(AF.Aes aes, byte[] key, AesKeySize keySize, Stream outStream, Stream inStream)
         {
-            using (var encryptStream = new CryptoStream(outStream, aes.CreateEncryptor(key, keySize), CryptoStreamMode.Write, true))
+            using (var encryptStream = new CryptoStream(outStream, aes.CreateEncryptor(key, keySize, PaddingMode.None), CryptoStreamMode.Write, true))
             {
                 encryptStream.WriteFrom(inStream);
             }
@@ -47,7 +47,7 @@ namespace Aes.Tests
 
         private static void Decrypt(AF.Aes aes, byte[] key, AesKeySize keySize, Stream outStream, Stream inStream)
         {
-            using (var encryptStream = new CryptoStream(inStream, aes.CreateDecryptor(key, keySize), CryptoStreamMode.Read, true))
+            using (var encryptStream = new CryptoStream(inStream, aes.CreateDecryptor(key, keySize, PaddingMode.None), CryptoStreamMode.Read, true))
             {
                 encryptStream.ReadInto(outStream);
             }

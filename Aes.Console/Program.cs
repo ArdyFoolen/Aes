@@ -13,26 +13,7 @@ namespace Aes.App
     {
         static void Main(string[] args)
         {
-            Func<int, int, byte> PaddingFunction = (NumberOfBytes, CurrentByte) => (byte)NumberOfBytes;
-            Func<byte[], int, int> RemovePaddingFunction = (Buffer, Length) => (int)Buffer[Length - 1];
-
             AF.Aes aes = new AF.Aes();
-            aes.PaddingFunction = PaddingFunction;
-            aes.RemovePaddingFunction = RemovePaddingFunction;
-
-            using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
-            using (FileStream writer = new FileStream("EncryptedFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(writer, aes.CreateEncryptor(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192), CryptoStreamMode.Write))
-            {
-                encryptStream.WriteFrom(stream);
-            }
-
-            using (Stream stream = new FileStream("EncryptedFile.txt", FileMode.Open))
-            using (FileStream writer = new FileStream("DecryptedFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(stream, aes.CreateDecryptor(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192), CryptoStreamMode.Read))
-            {
-                encryptStream.ReadInto(writer);
-            }
 
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("EncryptedFile.txt", FileMode.Create))

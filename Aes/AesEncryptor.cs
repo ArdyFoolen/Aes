@@ -9,10 +9,11 @@ namespace Aes.AF
 {
     public partial class Aes
     {
-        public ICryptoTransform CreateEncryptor(byte[] key, AesKeySize keySize)
+        public ICryptoTransform CreateEncryptor(byte[] key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
         {
             Aes aes = new Aes(key, keySize);
-            aes.PaddingFunction = this.PaddingFunction;
+            aes.PaddingMode = paddingMode;
+            aes.PaddingFunction = PaddingFactory.GetPaddingFunction(paddingMode);
             aes.InitializeRoundKey();
             return new AesEncryptor(aes);
         }

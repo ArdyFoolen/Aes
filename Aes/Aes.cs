@@ -185,13 +185,15 @@ namespace Aes.AF
 
         #region Properties
 
+        public PaddingMode PaddingMode { get; private set; }
+
         /// <summary>
         /// Padding function gets called NumberOfBytes times
         /// First int, NumberOfBytes to pad
         /// Second int, CurrentByte being pad
         /// Return byte, the pad byte
         /// </summary>
-        public Func<int, int, byte> PaddingFunction { get; set; } = null;
+        private Func<int, int, byte> PaddingFunction { get; set; } = null;
 
         /// <summary>
         /// Remove padding function called ones
@@ -199,7 +201,7 @@ namespace Aes.AF
         /// Second int, buffer length
         /// Return int, number of padded bytes to be removed from the buffer
         /// </summary>
-        public Func<byte[], int, int> RemovePaddingFunction { get; set; } = null;
+        private Func<byte[], int, int> RemovePaddingFunction { get; set; } = null;
 
         private int GetKeySize()
             => AesKeySize.Aes128.Equals(KeySize) ?
