@@ -21,6 +21,10 @@ namespace Aes.Tests
         public byte[] GetRoundKey(int index)
             => RoundKey[index];
 
+        public void InitializeKey()
+        {
+            base.InitializeRoundKey();
+        }
 
         public int ExecutingRound { get; private set; } = 0;
         protected override byte[] AddRoundKey(byte[] input, byte[] key)

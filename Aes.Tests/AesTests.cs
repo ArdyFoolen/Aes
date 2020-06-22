@@ -16,14 +16,16 @@ namespace Aes.Tests
         [TestCaseSource(typeof(AesSourceHelper), "RoundKeyExpand")]
         public void RoundKey_Expanded_Correct((byte[] Key, AesKeySize KeySize, byte[][] ExpectedRoundKeys) values)
         {
+            // Arrange
             AesContext aes = new AesContext(values.Key, values.KeySize);
-            using (Stream stream = new MemoryStream())
-            {
-                // Assert
-                Assert.AreEqual(values.ExpectedRoundKeys.Length, aes.RoundKeyLength);
-                for (int r = 0; r < values.ExpectedRoundKeys.Length; r++)
-                    Assert.That(values.ExpectedRoundKeys[r].Select((b, i) => new { value = b, index = i }).All(a => aes.GetRoundKey(r)[a.index] == a.value));
-            }
+
+            // Act
+            aes.InitializeKey();
+
+            // Assert
+            Assert.AreEqual(values.ExpectedRoundKeys.Length, aes.RoundKeyLength);
+            for (int r = 0; r < values.ExpectedRoundKeys.Length; r++)
+                Assert.That(values.ExpectedRoundKeys[r].Select((b, i) => new { value = b, index = i }).All(a => aes.GetRoundKey(r)[a.index] == a.value));
         }
 
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecrypt")]

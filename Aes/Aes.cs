@@ -47,13 +47,19 @@ namespace Aes.AF
             if (kSz != byteKey.Length)
                 throw new ArgumentException($"Key length not equal {kSz}");
             ByteKey = byteKey;
-            RoundKey = CtorRoundKey();
-            ExpandRoundKey();
+            //RoundKey = CtorRoundKey();
+            //ExpandRoundKey();
         }
 
         #endregion
 
         #region ExpandRoundKey
+
+        protected void InitializeRoundKey()
+        {
+            RoundKey = CtorRoundKey();
+            ExpandRoundKey();
+        }
 
         protected void ExpandRoundKey()
         {

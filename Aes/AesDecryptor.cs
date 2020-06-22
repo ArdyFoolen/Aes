@@ -13,6 +13,7 @@ namespace Aes.AF
         {
             Aes aes = new Aes(key, keySize);
             aes.RemovePaddingFunction = this.RemovePaddingFunction;
+            aes.InitializeRoundKey();
             return new AesDecryptor(aes);
         }
 
