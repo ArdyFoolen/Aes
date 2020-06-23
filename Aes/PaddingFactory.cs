@@ -17,9 +17,9 @@ namespace Aes.AF
                 case PaddingMode.Zeros:
                     return (NumberOfBytes, CurrentByte) => CurrentByte == 0 ? (byte)0x80 : (byte)0x00;
                 case PaddingMode.ANSIX923:
-                    return (NumberOfBytes, CurrentByte) => NumberOfBytes == CurrentByte ? (byte)NumberOfBytes : (byte)0x00;
+                    return (NumberOfBytes, CurrentByte) => (NumberOfBytes - 1) == CurrentByte ? (byte)NumberOfBytes : (byte)0x00;
                 case PaddingMode.ISO10126:
-                    return (NumberOfBytes, CurrentByte) => NumberOfBytes == CurrentByte ? (byte)NumberOfBytes : RandomByte();
+                    return (NumberOfBytes, CurrentByte) => (NumberOfBytes - 1) == CurrentByte ? (byte)NumberOfBytes : RandomByte();
             }
             return null;
         }
@@ -33,14 +33,14 @@ namespace Aes.AF
                 case PaddingMode.ISO10126:
                     return (Buffer, Length) => (int)Buffer[Length - 1];
                 case PaddingMode.Zeros:
-                    return (Buffer, Length) => Buffer.Reverse().Select((b, i) => new { value = b, index = i }).First(f => f.value == 0x80).index;
+                    return (Buffer, Length) => Buffer.Reverse().Select((b, i) => new { value = b, index = i }).First(f => f.value == 0x80).index + 1;
             }
             return null;
         }
 
+        private static Random random = new Random();
         private static byte RandomByte()
         {
-            var random = new Random();
             return (byte)random.Next(0, 0xff);
         }
     }

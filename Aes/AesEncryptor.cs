@@ -44,7 +44,8 @@ namespace Aes.AF
                     for (int i = inputCount; i < InputBlockSize; i++)
                         inputBuffer[i] = this.Aes.PaddingFunction(InputBlockSize - inputCount, i - inputCount);
 
-                if (this.Aes.PaddingFunction != null && inputCount > 0)
+                //if (this.Aes.PaddingFunction != null && inputCount > 0)
+                if (this.Aes.PaddingFunction != null)
                 {
                     byte[] buffer = new byte[OutputBlockSize];
                     this.Aes.Encrypt(inputBuffer, inputOffset, buffer, 0);
