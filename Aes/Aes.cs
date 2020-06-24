@@ -25,6 +25,12 @@ namespace Aes.AF
         Aes256 = 256
     };
 
+    public enum EncryptModeEnum
+    {
+        ECB,
+        CBC
+    };
+
     public partial class Aes
     {
         #region Fields
@@ -33,6 +39,7 @@ namespace Aes.AF
         protected string Key { get; set; }
         protected byte[] ByteKey { get; set; }
         protected byte[][] RoundKey;
+        protected byte[] IV { get; set; } = null;
 
         #endregion
 
@@ -47,8 +54,17 @@ namespace Aes.AF
             if (kSz != byteKey.Length)
                 throw new ArgumentException($"Key length not equal {kSz}");
             ByteKey = byteKey;
-            //RoundKey = CtorRoundKey();
-            //ExpandRoundKey();
+        }
+
+        protected Aes(byte[] byteKey, byte[] IV, AesKeySize keySize = AesKeySize.Aes128)
+        {
+            this.KeySize = keySize;
+            int kSz = GetKeySize();
+            if (kSz != byteKey.Length)
+                throw new ArgumentException($"Key length not equal {kSz}");
+            if (IV.Length != InputBlockSize)
+                throw new ArgumentException($"IV length not equal {InputBlockSize}");
+            ByteKey = byteKey;
         }
 
         #endregion
@@ -186,6 +202,8 @@ namespace Aes.AF
         #region Properties
 
         public PaddingMode PaddingMode { get; private set; }
+
+        public EncryptModeEnum EncryptMode { get; private set; } = EncryptModeEnum.ECB;
 
         /// <summary>
         /// Padding function gets called NumberOfBytes times

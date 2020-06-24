@@ -9,19 +9,20 @@ namespace Aes.AF
 {
     public partial class Aes
     {
-        public ICryptoTransform CreateEncryptor(byte[] key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
+        public ICryptoTransform CreateEncryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
         {
-            Aes aes = new Aes(key, keySize);
+            Aes aes = new Aes(key, IV, keySize);
             aes.PaddingMode = paddingMode;
             aes.PaddingFunction = PaddingFactory.GetPaddingFunction(paddingMode);
+            aes.EncryptMode = EncryptModeEnum.CBC;
             aes.InitializeRoundKey();
-            return new AesEncryptor(aes);
+            return new AesCBCEncryptor(aes);
         }
 
-        private class AesEncryptor : ICryptoTransform, IDisposable
+        private class AesCBCEncryptor : ICryptoTransform, IDisposable
         {
             private Aes Aes { get; }
-            public AesEncryptor(Aes aes)
+            public AesCBCEncryptor(Aes aes)
             {
                 this.Aes = aes;
             }
@@ -33,7 +34,13 @@ namespace Aes.AF
                 int returnCount = inputCount;
 
                 for (int i = 0; i < inputCount; i += OutputBlockSize)
-                    this.Aes.Encrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset + i);
+                {
+                    byte[] buffer = new byte[InputBlockSize];
+                    Array.Copy(inputBuffer, inputOffset + i, buffer, 0, InputBlockSize);
+                    buffer = this.Aes.AddRoundKey(buffer, this.Aes.IV);
+                    this.Aes.Encrypt(buffer, 0, outputBuffer, outputOffset + i);
+                    Array.Copy(outputBuffer, outputOffset + i, this.Aes.IV, 0, InputBlockSize);
+                }
 
                 return returnCount;
             }
@@ -46,9 +53,12 @@ namespace Aes.AF
 
                 if (this.Aes.PaddingFunction != null)
                 {
-                    byte[] buffer = new byte[OutputBlockSize];
-                    this.Aes.Encrypt(inputBuffer, inputOffset, buffer, 0);
-                    return buffer;
+                    byte[] buffer = new byte[InputBlockSize];
+                    byte[] output = new byte[OutputBlockSize];
+                    Array.Copy(inputBuffer, inputOffset, buffer, 0, InputBlockSize);
+                    buffer = this.Aes.AddRoundKey(buffer, this.Aes.IV);
+                    this.Aes.Encrypt(buffer, 0, output, 0);
+                    return output;
                 }
                 else
                     return new byte[0];
