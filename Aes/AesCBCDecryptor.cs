@@ -9,23 +9,37 @@ namespace Aes.AF
 {
     public partial class Aes
     {
-        public ICryptoTransform CreateDecryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
+        public ICryptoTransform CreateDecryptor(byte[] key, byte[] IV, EncryptModeEnum encryptMode, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
         {
-            Aes aes = new Aes(key, IV, keySize);
-            aes.PaddingMode = paddingMode;
-            aes.RemovePaddingFunction = PaddingFactory.GetRemovePaddingFunction(paddingMode);
-            aes.EncryptMode = EncryptModeEnum.CBC;
-            aes.InitializeRoundKey();
-            return new AesCBCDecryptor(aes);
+            if (EncryptModeEnum.CBC.Equals(encryptMode))
+                return AesCBCDecryptor.CreateDecryptor(key, IV, keySize, paddingMode);
+            if (EncryptModeEnum.CTR.Equals(encryptMode))
+                return AesCTREncryptor.CreateEncryptor(key, IV, keySize);
+
+            throw new Exception($"Encryption Mode {encryptMode} not valid");
         }
 
         private class AesCBCDecryptor : ICryptoTransform, IDisposable
         {
             private Aes Aes { get; }
-            public AesCBCDecryptor(Aes aes)
+            private AesCBCDecryptor(Aes aes)
             {
                 this.Aes = aes;
             }
+
+            #region Encryptor/Decryptor
+
+            public static ICryptoTransform CreateDecryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
+            {
+                Aes aes = new Aes(key, IV, keySize);
+                aes.PaddingMode = paddingMode;
+                aes.RemovePaddingFunction = PaddingFactory.GetRemovePaddingFunction(paddingMode);
+                aes.EncryptMode = EncryptModeEnum.CBC;
+                aes.InitializeRoundKey();
+                return new AesCBCDecryptor(aes);
+            }
+
+            #endregion
 
             #region ICryptoTransform
 

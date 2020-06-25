@@ -28,7 +28,8 @@ namespace Aes.AF
     public enum EncryptModeEnum
     {
         ECB,
-        CBC
+        CBC,
+        CTR
     };
 
     public partial class Aes
@@ -65,6 +66,7 @@ namespace Aes.AF
             if (IV.Length != InputBlockSize)
                 throw new ArgumentException($"IV length not equal {InputBlockSize}");
             ByteKey = byteKey;
+            this.IV = IV;
         }
 
         #endregion

@@ -58,11 +58,10 @@ namespace Aes.Tests
                 yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key128, AesKeySize.Aes128, PaddingMode.Zeros, outStream, inStream));
                 yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key128, AesKeySize.Aes128, PaddingMode.Zeros, outStream, inStream));
 
-                // ToDo Random padding bytes to be tested later
-                //cryptBytes = new byte[] { 0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a,
-                //    0xe8, 0x92, 0x05, 0x75, 0x5e, 0x20, 0x80, 0xf3, 0x9f, 0x7c, 0xe5, 0x1e, 0x08, 0x88, 0xda, 0x16 };
-                //yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key128, AesKeySize.Aes128, PaddingMode.ISO10126, outStream, inStream));
-                //yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key128, AesKeySize.Aes128, PaddingMode.ISO10126, outStream, inStream));
+                cryptBytes = new byte[] { 0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a,
+                    0x55, 0x0e, 0xae, 0x96, 0x77, 0x19, 0x63, 0xff, 0xab, 0xfd, 0x87, 0x12, 0x8c, 0xc1, 0x1a, 0xf8 };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key128, AesKeySize.Aes128, PaddingMode.ISO10126, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key128, AesKeySize.Aes128, PaddingMode.ISO10126, outStream, inStream));
 
                 byte[] key192 = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
                 plainBytes = new byte[] { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
@@ -81,11 +80,10 @@ namespace Aes.Tests
                 yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key192, AesKeySize.Aes192, PaddingMode.Zeros, outStream, inStream));
                 yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key192, AesKeySize.Aes192, PaddingMode.Zeros, outStream, inStream));
 
-                // ToDo Random padding bytes to be tested later
-                //cryptBytes = new byte[] { 0xdd, 0xa9, 0x7c, 0xa4, 0x86, 0x4c, 0xdf, 0xe0, 0x6e, 0xaf, 0x70, 0xa0, 0xec, 0x0d, 0x71, 0x91,
-                //    0x3f, 0xe7, 0x28, 0x6a, 0xbd, 0xe5, 0xf0, 0x39, 0x43, 0xd5, 0x77, 0x70, 0x20, 0x25, 0x96, 0x26 };
-                //yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key192, AesKeySize.Aes192, PaddingMode.ISO10126, outStream, inStream));
-                //yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key192, AesKeySize.Aes192, PaddingMode.ISO10126, outStream, inStream));
+                cryptBytes = new byte[] { 0xdd, 0xa9, 0x7c, 0xa4, 0x86, 0x4c, 0xdf, 0xe0, 0x6e, 0xaf, 0x70, 0xa0, 0xec, 0x0d, 0x71, 0x91,
+                    0xa0, 0xd6, 0x1d, 0x4e, 0xda, 0x77, 0xaf, 0x48, 0xd2, 0x6a, 0xb8, 0xb4, 0x7f, 0xfa, 0x02, 0x91 };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key192, AesKeySize.Aes192, PaddingMode.ISO10126, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key192, AesKeySize.Aes192, PaddingMode.ISO10126, outStream, inStream));
 
                 byte[] key256 = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f };
                 plainBytes = new byte[] { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
@@ -104,11 +102,10 @@ namespace Aes.Tests
                 yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key256, AesKeySize.Aes256, PaddingMode.Zeros, outStream, inStream));
                 yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key256, AesKeySize.Aes256, PaddingMode.Zeros, outStream, inStream));
 
-                // ToDo Random padding bytes to be tested later
-                //cryptBytes = new byte[] { 0x8e, 0xa2, 0xb7, 0xca, 0x51, 0x67, 0x45, 0xbf, 0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89,
-                //    0x9f, 0x3b, 0x75, 0x04, 0x92, 0x6f, 0x8b, 0xd3, 0x6e, 0x31, 0x18, 0xe9, 0x03, 0xa4, 0xcd, 0x4a };
-                //yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key256, AesKeySize.Aes256, PaddingMode.ISO10126, outStream, inStream));
-                //yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key256, AesKeySize.Aes256, PaddingMode.ISO10126, outStream, inStream));
+                cryptBytes = new byte[] { 0x8e, 0xa2, 0xb7, 0xca, 0x51, 0x67, 0x45, 0xbf, 0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89,
+                    0xdf, 0xe8, 0xf7, 0x7a, 0x27, 0xaa, 0xdd, 0x15, 0x79, 0xdf, 0xed, 0x4f, 0xa9, 0x86, 0xe5, 0xfe };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => Encrypt(aes, key256, AesKeySize.Aes256, PaddingMode.ISO10126, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key256, AesKeySize.Aes256, PaddingMode.ISO10126, outStream, inStream));
             }
         }
 

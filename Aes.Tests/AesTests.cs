@@ -55,6 +55,8 @@ namespace Aes.Tests
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptDifferentPadding")]
         public void EnDecrypt_DifferentPadding_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream, Stream> Crypt) values)
         {
+            indexR = 0;
+            PaddingFactory.DiRandomByte = () => GetRandomByte();
             AesContext aes = new AesContext();
             using (Stream inStream = new MemoryStream())
             {
@@ -75,5 +77,11 @@ namespace Aes.Tests
                 Assert.That(values.Out.Select((b, i) => new { value = b, index = i }).All(a => actual[a.index] == a.value));
             }
         }
+
+        byte[] randoms = new byte[] { 0xa1, 0xb2, 0xc3, 0xd4, 0xe5, 0xf6, 0xa7, 0xb8, 0xc9, 0xda, 0xeb, 0xfc, 0xad, 0xbe, 0xcf, 0xd0 };
+        int indexR = 0;
+
+        private byte GetRandomByte()
+            => randoms[indexR++];
     }
 }

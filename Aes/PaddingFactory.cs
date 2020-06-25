@@ -19,7 +19,7 @@ namespace Aes.AF
                 case PaddingMode.ANSIX923:
                     return (NumberOfBytes, CurrentByte) => (NumberOfBytes - 1) == CurrentByte ? (byte)NumberOfBytes : (byte)0x00;
                 case PaddingMode.ISO10126:
-                    return (NumberOfBytes, CurrentByte) => (NumberOfBytes - 1) == CurrentByte ? (byte)NumberOfBytes : RandomByte();
+                    return (NumberOfBytes, CurrentByte) => (NumberOfBytes - 1) == CurrentByte ? (byte)NumberOfBytes : DiRandomByte();
             }
             return null;
         }
@@ -38,6 +38,7 @@ namespace Aes.AF
             return null;
         }
 
+        public static Func<byte> DiRandomByte = () => RandomByte();
         private static Random random = new Random();
         private static byte RandomByte()
         {

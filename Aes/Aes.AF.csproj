@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="PaddingFactory - Copy.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="UnencryptedFile.txt" />
   </ItemGroup>
 
