@@ -77,7 +77,7 @@ Round | Value | Explanation | rcon
 	RotWord([ b0, b1, b2, b3 ]) = [ b1, b2, b3, b0 ]		One byte Left circular shift of dword
 	SubWord([ b0, b1, b2, b3 ]) = [ S(b0), S(b1), S(b2), S(b3) ]	Substitute byte according S-Box
 
-        Condition                       	Calculate new key
+	Condition                       	Calculate new key
 	i < N			 		Wi = Ki
 	i >= N && (i % N) == 0			Wi = Wi-N ^ SubWord(RotWord(Wi-1)) ^ rconi
 	i >= N && N > 6 && (i % N) == 4		Wi = Wi-N ^ SubWord(Wi-1)
