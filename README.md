@@ -41,7 +41,6 @@ Aes implementation
 
 ### Calculating Round Constants
 
-```
 rcon for round i (rconi) = | rci 0x00 0x00 0x00 | 32 bit dword
 
 First Header | Second Header
