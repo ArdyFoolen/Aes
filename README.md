@@ -114,10 +114,10 @@ or by using the index formula r + 4 * c over the input.
 	Example column of input bytes: db 13 53 45
 	Example column of encrypted  : 8e 4d a1 bc
   
-	db 13 53 45 *	| 2 3 1 1 | = db * 2 xor 13 * 3 xor 53 xor 45 = 8e
-			| 1 2 3 1 | = db xor 13 * 2 xor 53 * 3 xor 45 = 4d
-			| 1 1 2 3 | = db xor 13 xor 53 * 2 xor 45 * 3 = a1
-			| 3 1 1 2 | = db * 3 xor 13 xor 53 xor 45 * 2 = bc
+	db 13 53 45 *	| 2 3 1 1 | = db * 2 xor 13 * 3 xor 53     xor 45 = 8e
+			| 1 2 3 1 | = db     xor 13 * 2 xor 53 * 3 xor 45 = 4d
+			| 1 1 2 3 | = db     xor 13     xor 53 * 2 xor 45 * 3 = a1
+			| 3 1 1 2 | = db * 3 xor 13     xor 53     xor 45 * 2 = bc
 
 #### Multiplication
   
