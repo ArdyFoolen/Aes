@@ -41,7 +41,7 @@ Aes implementation
 
 ### Calculating Round Constants
 
-rcon for round i (rconi) = | rci 0x00 0x00 0x00 | rci is the first byte in a 32 bit dword
+rcon for round i (rconi) = **| rci 0x00 0x00 0x00 |** rci is the first byte in a 32 bit dword
 
 1. rci for round 1 = 0x01
 2. All subsequent rounds the value from the previous round is multiplied by 2.
@@ -65,7 +65,7 @@ Round | Value | Explanation | rcon
 14 | 0x4D | (0xAB * 2) = 0x156 ^ 0x11B = 0x4D, See (3) | 0x4D000000
 15 | 0x9A | (0x4D * 2), See (2)	| 0x9A000000
     
-  ### KeySchedule
+### KeySchedule
 
 		Definitions
 
@@ -92,7 +92,7 @@ Round | Value | Explanation | rcon
   ### State
   
   Encryption takes place over 128 bit input blocks (your plain text), regardsless of the size of the key. This state
-  can be achieved by changing either the input to a 2 dimensional array of 4 bytes by 32 bytes, 4 rows by 32 columns,
+  can be achieved by changing either the input to a 2 dimensional array of 4 bytes by 4 bytes, 4 rows by 4 columns,
   or by using the index formula r + 4 * c over the input.
 
   ### Calculate MixColumns
