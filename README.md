@@ -21,7 +21,7 @@ Aes implementation
 - [x] Cipher Block Chain (CBC
 
 	Before encryption the plain text block is XORed with the previous cipher text block,
-	except the first block which is XORed with a initialization vector (IV).
+	except the first block which is XORed with an initialization vector (IV).
 	
 - [x] Counter mode (CTR)
 
