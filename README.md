@@ -67,25 +67,21 @@ Round | Value | Explanation | rcon
     
 ### KeySchedule
 
-		Definitions
+	Definitions
 
-		N							            As the length of the key in 32 bits dwords, 128 = 4, 192 = 6, 256 = 8.
-		K0, K1, K2, ..., K(N-1)		32 bits dwords of the original key
-		R							            Number of rounds, 128 = 11, 192 = 13, 256 = 15.
-		W0, W1, W2, ..., W(4R-1)	32 bits dwords of the expanded key
-		i							            0 ... 4R-1
-		RotWord([ b0, b1, b2, b3 ]) = [ b1, b2, b3, b0 ]	One byte Left circular shift of dword
-		SubWord([ b0, b1, b2, b3 ]) = [ S(b0), S(b1), S(b2), S(b3) ] Substitute byte according S-Box
+	N				As the length of the key in 32 bits dwords, For 128 = 4, 192 = 6, 256 = 8.
+	K0, K1, K2, ..., K(N-1)		32 bits dwords of the original key
+	R				Number of rounds, 128 = 11, 192 = 13, 256 = 15.
+	W0, W1, W2, ..., W(4R-1)	32 bits dwords of the expanded key
+	i				0 ... 4R-1
+	RotWord([ b0, b1, b2, b3 ]) = [ b1, b2, b3, b0 ]		One byte Left circular shift of dword
+	SubWord([ b0, b1, b2, b3 ]) = [ S(b0), S(b1), S(b2), S(b3) ]	Substitute byte according S-Box
 
-            Condition                       Calculate new key
-				 |  i < N							              Ki										                Original key
-         |
-		Wi = |  i >= N && (i % N) = 0			      Wi-N ^ SubWord(RotWord(Wi-1)) ^ rconi	Change last dword of key
-         |
-				 |  i >= N && N > 6 && (i % N) = 4  Wi-N ^ SubWord(Wi-1)					        AES256 and above, extra substitution
-         |
-				 |  otherwise						            Wi-N ^ Wi-1								            Xor previous expanded dword key with
-         |                                                                         previous round expanded dword key
+        Condition                       	Calculate new key
+	i < N			 		Wi = Ki
+	i >= N && (i % N) == 0			Wi = Wi-N ^ SubWord(RotWord(Wi-1)) ^ rconi
+	i >= N && N > 6 && (i % N) == 4		Wi = Wi-N ^ SubWord(Wi-1)
+	otherwise				Wi-N ^ Wi-1
 
 ## MixColumns
 
