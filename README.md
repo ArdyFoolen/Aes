@@ -41,10 +41,12 @@ Aes implementation
 
 ### Calculating Round Constants
 
-```rcon for round i (rconi) = | rci 0x00 0x00 0x00 | 32 bit dword```
+```
+rcon for round i (rconi) = | rci 0x00 0x00 0x00 | 32 bit dword
+```
 
     | Condition | Value
-====|===========|======
+---- | ----------- | ------
 | i == 1 | 0x01 |
 rci | rci - 1 >= 0x80 |
 
