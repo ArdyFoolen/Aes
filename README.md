@@ -114,8 +114,8 @@ or by using the index formula r + 4 * c over the input.
 	Example column of input bytes: db 13 53 45
 	Example column of encrypted  : 8e 4d a1 bc
   
-	db 13 53 45 *	| 2 3 1 1 | = db * 2 xor 13 * 3 xor 53     xor 45 = 8e
-			| 1 2 3 1 | = db     xor 13 * 2 xor 53 * 3 xor 45 = 4d
+	db 13 53 45 *	| 2 3 1 1 | = db * 2 xor 13 * 3 xor 53     xor 45     = 8e
+			| 1 2 3 1 | = db     xor 13 * 2 xor 53 * 3 xor 45     = 4d
 			| 1 1 2 3 | = db     xor 13     xor 53 * 2 xor 45 * 3 = a1
 			| 3 1 1 2 | = db * 3 xor 13     xor 53     xor 45 * 2 = bc
 
@@ -126,26 +126,26 @@ All above numbers are in hex. For readability I put a space between 4 bits.
 1. Change to binary db = 1101 1011
 2. Shift, move all bits 1 position to the left. Most significant bit gets lost, least significat bit becomes 0.
 	1101 1011 << 1 = 1011 0110
-3. If before the shift the most significat bit is 1, xor with 1b = 0001 1011 in binary.
+3. If before the shift the most significant bit is 1, xor with 1b = 0001 1011 in binary.
 	- 1011 0110
 	- 0001 1011
 	- 1010 1101 = ad in hex
 4. The result in point 3 is the multiplication of db by 2 = ad.
 5. Now multiply 13 by 3, 3 in binary = 0011 = 0010 xor 0001. Which means first multiply by 2 and then xor with the original value.
-0001 0011 << 1 = 0010 0110 (No need for step 2)
+	- 0001 0011 << 1 = 0010 0110 (No need for step 3)
 
-0010 0110 (result of x2)
-0001 0011 (xor with original value = 13 hex)
-= 0011 0101 = 35 in hex
+	- 0010 0110 (result of x2)
+	- 0001 0011 (xor with original value = 13 hex)
+	- 0011 0101 = 35 in hex
 6. Now xor all the 4 results together. (No need to calculate the 2 x1 multiplication)
 
-ad = 1010 1101
-35 = 0011 0101
-   = 1001 1000 xor
-53 = 0101 0011
-   = 1100 1011 xor
-45 = 0100 0101
-   = 1000 1110 = 8e This is your first number see result above.
+	- ad = 1010 1101
+	- 35 = 0011 0101
+	-    = 1001 1000 xor
+	- 53 = 0101 0011
+	-    = 1100 1011 xor
+	- 45 = 0100 0101
+	-    = 1000 1110 = 8e This is your first number see result above.
 7. Now calculate the other 3 numbers with the above formulas.
 
 Note: To calculate with E:
@@ -154,18 +154,18 @@ Note: To calculate with E:
 3. To multiply by 8, you have to multiply 3 times with 2, and do not forget to xor with 1b every time if necessary.
 4. After the 8 multiplication you also already have the x4 and x2 values to be used in your final xor.
 
-e.g: e * 8e
-8e = 1000 1110 << 1 = 0001 1100
-		      0001 1011 (1b because of high bit)
-		      0000 0111 x2
-     0000 0111 << 1 = 0000 1110 x4 (No high bit)
-     0000 1110 << 1 = 0001 1100 x8 (No high bit)
+	- e.g: e * 8e
+	- 8e = 1000 1110 << 1 = 0001 1100
+	- 		      	0001 1011 (1b because of high bit)
+	- 		      	0000 0111 x2
+	-      0000 0111 << 1 = 0000 1110 x4 (No high bit)
+	-      0000 1110 << 1 = 0001 1100 x8 (No high bit)
 
-     0000 0111 x2
-     0000 1110 x4
-   = 0000 1001 xor
-     0001 1100 x8
-   = 0001 0101 = 15 in hex result
+	-    0000 0111 x2
+	-    0000 1110 x4
+	-  = 0000 1001 xor
+	-    0001 1100 x8
+	-  = 0001 0101 = 15 in hex result
 
 5. b = 1011 = 1000 xor 0010 xor 0001, See multiplication of e, except in final xor take x8, x2 and x1
 6. d = 1101 = 1000 xor 0100 xor 0001, See multiplication of e, except in final xor take x8, x4 and x1
