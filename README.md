@@ -1,11 +1,52 @@
 # Aes
 Aes implementation
 
+- [x] Implement Aes
+- [x] Add different padding schemes
+- [x] Add encryption mode
+
+##### Padding schemes
+
+- [x] PKCS7
+- [x] One and Zeros
+- [x] ANSIX923
+- [x] ISO10126
+
+##### Encryption mode
+
+- [x] Electronic Code Block (ECB)
+
+	Every block is encrypted and decrypted separately.
+	
+- [x] Cipher Block Chain (CBC
+
+	Before encryption the plain text block is XORed with the previous cipher text block,
+	except the first block which is XORed with a initialization vector (IV).
+	
+- [x] Counter mode (CTR)
+
+	Here the initialization vector that is past consist only of 12 bytes,
+	the last 4 bytes is added with a counter that increments after every block.
+	Here the IV is encrypted and after encryption XORed with the plain text.
+	This is a streaming encryption and no padding is needed.
+	
+- [ ] Galois Counter Mode (GCM)
+
+	This is Authenticated Encryption with Associated Data (AEAD)
+
+
+## Implementation
+
 ## Aes Key expansion
 
-  ### Calculating Round Constants
+### Calculating Round Constants
 
-  rcon for round i (rconi) = | rci 0x00 0x00 0x00 | is a 32 bit dword
+```rcon for round i (rconi) = | rci 0x00 0x00 0x00 | 32 bit dword```
+
+    | Condition | Value
+====|===========|======
+| i == 1 | 0x01 |
+rci | rci - 1 >= 0x80 |
 
 					  | (1) round 1							0x01
             |
