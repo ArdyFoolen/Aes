@@ -41,40 +41,29 @@ Aes implementation
 
 ### Calculating Round Constants
 
-rcon for round i (rconi) = | rci 0x00 0x00 0x00 | 32 bit dword
+rcon for round i (rconi) = | rci 0x00 0x00 0x00 | rci is the first byte in a 32 bit dword
 
-First Header | Second Header
------------- | -------------
-Content from cell 1 | Content from cell 2
-Content in the first column | Content in the second column
+1. rci for round 1 = 0x01
+2. All subsequent rounds the value from the previous round is multiplied by 2.
+3. If the value in the previous round >= 0x80, then after multiplication the value is XORed with 0x11B
 
-    | Condition | Value
----- | ----------- | ------
-| i == 1 | 0x01 |
-rci | rci - 1 >= 0x80 |
-
-					  | (1) round 1							0x01
-            |
-		(rc i) =|	(2) round > 1 && (rc i-1) < 0x80	2 * (rc i-1)
-            |
-					  |  (3) round > 1 && (rc i-1) >= 0x80	(2 * (rc i-1)) ^ 0x11B
-
-		Round	Value	Explanation									                rcon
-		1		  0x01	See above (1)								                0x01000000
-		2		  0x02	0x01 * 2, See (2)							              0x02000000
-		3		  0x04	0x02 * 2, See (2)							              0x04000000
-		4		  0x08	0x04 * 2, See (2)							              0x08000000
-		5		  0x10	0x08 * 2, See (2)							              0x10000000
-		6		  0x20	0x10 * 2, See (2)							              0x20000000
-		7		  0x40	0x20 * 2, See (2)							              0x40000000
-		8		  0x80	0x40 * 2, See (2)							              0x80000000
-		9		  0x1B	(0x80 * 2) = 0x100 ^ 0x11B = 0x1B, See (3)	0x1B000000
-		10		0x36	0x1B * 2, See (2)							              0x36000000
-		11		0x6C	0x36 * 2, See (2)							              0x6C000000
-		12		0xD8	0x6C * 2, See (2)							              0xD8000000
-		13		0xAB	(0xD8 * 2) = 0x1B0 ^ 0x11B = 0xAB, See (3)	0xAB000000
-		14		0x4D	(0xAB * 2) = 0x156 ^ 0x11B = 0x4D, See (3)	0x4D000000
-		15		0x9A	(0x4D * 2), See (2)							            0x9A000000
+Round | Value | Explanation | rcon
+----- | ----- | ----------- | ----
+1 | 0x01 | See above (1) | 0x01000000
+2 | 0x02 | 0x01 * 2, See (2) | 0x02000000
+3 | 0x04 | 0x02 * 2, See (2) | 0x04000000
+4 | 0x08 | 0x04 * 2, See (2) | 0x08000000
+5 | 0x10 | 0x08 * 2, See (2) | 0x10000000
+6 | 0x20 | 0x10 * 2, See (2) | 0x20000000
+7 | 0x40 | 0x20 * 2, See (2) | 0x40000000
+8 | 0x80 | 0x40 * 2, See (2) | 0x80000000
+9 | 0x1B | (0x80 * 2) = 0x100 ^ 0x11B = 0x1B, See (3) | 0x1B000000
+10 | 0x36 | 0x1B * 2, See (2) | 0x36000000
+11 | 0x6C | 0x36 * 2, See (2) | 0x6C000000
+12 | 0xD8 | 0x6C * 2, See (2) | 0xD8000000
+13 | 0xAB | (0xD8 * 2) = 0x1B0 ^ 0x11B = 0xAB, See (3) | 0xAB000000
+14 | 0x4D | (0xAB * 2) = 0x156 ^ 0x11B = 0x4D, See (3) | 0x4D000000
+15 | 0x9A | (0x4D * 2), See (2)	| 0x9A000000
     
   ### KeySchedule
 
