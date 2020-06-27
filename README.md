@@ -43,7 +43,11 @@ Aes implementation
 
 ```
 rcon for round i (rconi) = | rci 0x00 0x00 0x00 | 32 bit dword
-```
+
+First Header | Second Header
+------------ | -------------
+Content from cell 1 | Content from cell 2
+Content in the first column | Content in the second column
 
     | Condition | Value
 ---- | ----------- | ------
