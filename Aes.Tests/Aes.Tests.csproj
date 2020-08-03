@@ -51,6 +51,7 @@
     <Compile Include="AesContext.cs" />
     <Compile Include="AesSourceHelper.cs" />
     <Compile Include="AesTests.cs" />
+    <Compile Include="GaloisMultiplicationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
