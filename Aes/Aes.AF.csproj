@@ -12,4 +12,8 @@
     <None Remove="UnencryptedFile.txt" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Documentation\" />
+  </ItemGroup>
+
 </Project>

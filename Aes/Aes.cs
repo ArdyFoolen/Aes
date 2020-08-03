@@ -16,6 +16,15 @@ using System.Text;
 // https://en.wikipedia.org/wiki/Rijndael_MixColumns
 // https://en.wikipedia.org/wiki/Advanced_Encryption_Standard
 // https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf With Examples at the end to verify implementation
+
+
+// Galois Counter Mode
+// https://luca-giuzzi.unibs.it/corsi/Support/papers-cryptography/gcm-spec.pdf
+// https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
+// https://stackoverflow.com/questions/10655026/gcm-multiplication-implementation
+// http://www.ieee802.org/1/files/public/docs2011/bn-randall-test-vectors-0511-v1.pdf
+// https://books.google.bg/books?id=VaiYIZHduXQC&pg=PA303&lpg=PA303&dq=ghash+input+and+output&source=bl&ots=GXUyzEcIXH&sig=ACfU3U1XsSY_WiPK9CUUoUktc_oPNQhg0g&hl=en&sa=X&ved=2ahUKEwjPqLvZnZ_qAhWjzYUKHSOyBxsQ6AEwDHoECAgQAQ#v=onepage&q=ghash%20input%20and%20output&f=false
+
 namespace Aes.AF
 {
     public enum AesKeySize
