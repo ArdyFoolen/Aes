@@ -275,3 +275,99 @@ KeySchedule
 						0110 1100 ^ 6c
 						0010 1011 ^ 2b
 					  = 1101 1011 = db Result (Odd number of 1's = 1, Even = 0)
+
+GCM Mode
+
+	GCM Data Processing
+
+	Input
+		P:		PlainText
+		K:		Secret Key
+		A:		Additional Authentication Data
+		IV:		GCM Initial Vector
+	Output
+		C:		CipherText
+		T:		MAC Tag
+	
+		1:		H = E(K, 0)
+		2:		If length(IV) == 96
+					Y0 = IV || 0(31)1
+				Else
+					Y0 = GHASH(H, {}, IV)
+		3:		Yi = Yi-1 + 1, for i = 1, ..., n
+		4:		Ci = Pi XOR E(K, Yi), for i = 1, ..., n-1
+		5:		Cn = Pn XOR E(K, Yn), truncated to the length of Pn
+		6:		T = GHASH(H, A, C) XOR E(K, Y0)
+		7:		Return C and T
+
+	GCM GHASH Function
+
+	Input
+		H;		Secret Parameter (derived from the secret key)
+		A:		Additional Authentication Data (m blocks)
+		C:		Ciphertext (also used as a additional input source, n blocks)
+	Output
+		T:		GHASH Output
+
+		1:		X0 = 0
+		2:		For i = 1; i <= m; i++
+					Xi = (Xi-1 XOR Ai) * H
+		3:		For i = 1; i <= n; i++
+					Xi+m = (Xi+m-1 XOR Ci) * H
+		4:		T = (Xm+n XOR (length(A) || length(C))) * H
+		5:		Return T
+
+	Optimized version
+	=================
+
+	Input
+		P:		PlainText
+		K:		Secret Key
+		A:		Additional Authentication Data
+		IV:		GCM Initial Vector
+	Output
+		C:		CipherText
+		T:		MAC Tag
+
+		Initialize
+		1:		H = E(K, 0)
+		2:		If length(IV) == 96
+					Y0 = IV || 0(31)1
+				Else
+					Y0 = GHASH(H, {}, IV)
+		3:		HA = GHASHA(H, A)
+
+		Process
+		4:		Yi = Yi-1 + 1, for i = 1, ..., n
+		5:		Ci = Pi XOR E(K, Yi), for i = 1, ..., n-1
+		6:		Cn = Pn XOR E(K, Yn), truncated to the length of Pn
+		7:		HC = GHASHC(H, Ci, HA), for i = 1
+		8:		HC = GHASHC(H, Ci, HC), for i = 2, ..., n
+
+		Finalize
+		9:		HL = (HC XOR (length(A) || length(C))) * H
+		10:		T = HL XOR E(K, Y0)
+
+	GCM GHASH Additional Authentication Data Function
+
+	Input
+		H;		Secret Parameter (derived from the secret key)
+		A:		Additional Authentication Data (m blocks)
+	Output
+		T:		Xm
+
+		1:		X0 = 0
+		2:		For i = 1; i <= m; i++
+					Xi = (Xi-1 XOR Ai) * H
+		3:		Return Xm
+
+	GCM GHASH Ciphertext Function
+
+	Input
+		H;		Secret Parameter (derived from the secret key)
+		Cb:		Ciphertext block
+		Hp:		Previous result
+	Output
+		T:		Xn
+
+		1:		Return (Hp XOR Cb) * H
