@@ -38,7 +38,8 @@ namespace Aes.AF
     {
         ECB,
         CBC,
-        CTR
+        CTR,
+        GCM
     };
 
     public partial class Aes

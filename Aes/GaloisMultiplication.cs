@@ -69,6 +69,19 @@ namespace Aes.AF
             return z;
         }
 
+        public static byte[] Add(byte[] a, byte[] b)
+        {
+            int l = a.Length > b.Length ? a.Length : b.Length;
+            byte[] result = new byte[l];
+            for (int i = 0; i < l; i++)
+            {
+                byte first = i < a.Length ? a[i] : (byte)0x00;
+                byte second = i < b.Length ? b[i] : (byte)0x00;
+                result[i] = (byte)(first ^ second);
+            }
+            return result;
+        }
+
         private static void AddToFirst(byte[] first, byte[] add, byte mask)
         {
             for (int i = 0; i < first.Length; i++)

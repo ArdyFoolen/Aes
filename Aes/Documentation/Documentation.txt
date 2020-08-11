@@ -345,6 +345,8 @@ GCM Mode
 		8:		HC = GHASHC(H, Ci, HC), for i = 2, ..., n
 
 		Finalize
+		6:		Cn = Pn XOR E(K, Yn), truncated to the length of Pn
+		8:		HC = GHASHC(H, Ci, HC), for i = n
 		9:		HL = (HC XOR (length(A) || length(C))) * H
 		10:		T = HL XOR E(K, Y0)
 

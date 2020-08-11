@@ -26,7 +26,7 @@ namespace Aes.AF
                     throw new ArgumentException($"IV length not equal {12}");
 
                 byte[] newIV = new byte[16];
-                Array.Copy(IV, 0, newIV, 0, 12);
+                Array.Copy(IV, 0, newIV, 0, IV.Length);
 
                 Aes aes = new Aes(key, newIV, keySize);
                 aes.PaddingMode = PaddingMode.None;
