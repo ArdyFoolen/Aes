@@ -11,7 +11,7 @@ namespace Aes.AF
     {
         public IAuthenticatedCryptoTransform CreateEncryptor(byte[] key, byte[] IV, string additionalData, AesKeySize keySize = AesKeySize.Aes128)
         {
-            byte[] newIV = new byte[16];
+            byte[] newIV = new byte[IV.Length];
             Array.Copy(IV, 0, newIV, 0, IV.Length);
 
             Aes aes = new Aes(key, newIV, keySize);
@@ -19,16 +19,26 @@ namespace Aes.AF
             aes.EncryptMode = EncryptModeEnum.GCM;
             aes.InitializeRoundKey();
 
-            //byte[] aad = ConvertAdditionalDataToByteArray(additionalData);
+            return new AesGCMEncryptor(aes, additionalData);
+        }
 
-            //return new AesGCMEncryptor(aes, aad, additionalData.Length);
+        public IAuthenticatedCryptoTransform CreateEncryptor(byte[] key, byte[] IV, byte[] additionalData, AesKeySize keySize = AesKeySize.Aes128)
+        {
+            byte[] newIV = new byte[IV.Length];
+            Array.Copy(IV, 0, newIV, 0, IV.Length);
+
+            Aes aes = new Aes(key, newIV, keySize);
+            aes.PaddingMode = PaddingMode.None;
+            aes.EncryptMode = EncryptModeEnum.GCM;
+            aes.InitializeRoundKey();
+
             return new AesGCMEncryptor(aes, additionalData);
         }
 
         private class AesGCMEncryptor : IAuthenticatedCryptoTransform, IDisposable
         {
             private Aes Aes { get; }
-            private string AdditionalData { get; }
+            private byte[] AdditionalData { get; }
 
             private byte[] H { get; set; }
             private byte[] InitialCounter { get; set; }
@@ -36,46 +46,47 @@ namespace Aes.AF
             private byte[] ByteTag { get; set; }
             private int LengthCipher { get; set; }
 
-
-
-
-            private byte[] AdditionalAuthenticationData { get; }
-            private int LengthAAD { get; set; }
-
-            private byte[] Y0 { get; set; }
-            private byte[] HA { get; set; }
-            private byte[] Initial { get; set; }
-
             public AesGCMEncryptor(Aes aes, string additionalData)
+            {
+                this.Aes = aes;
+                this.AdditionalData = ConvertAdditionalDataToByteArray(additionalData);
+
+                Initialize();
+            }
+
+            public AesGCMEncryptor(Aes aes, byte[] additionalData)
             {
                 this.Aes = aes;
                 this.AdditionalData = additionalData;
 
+                Initialize();
+            }
+
+            private void Initialize()
+            {
                 CreateHashKey();
                 CreateInitialCounter();
                 CreateCounter();
-                byte[] aad = ConvertAdditionalDataToByteArray(additionalData);
-                CreateByteTagWithAAD(aad);
-
+                CreateByteTagWithAAD();
             }
 
             /// <summary>
             /// 1:		X0 = 0
-		    /// 2:		For i = 1; i <= m; i++
-			///		        Xi = (Xi-1 XOR Ai) * H
+            /// 2:		For i = 1; i <= m; i++
+            ///		        Xi = (Xi-1 XOR Ai) * H
             /// </summary>
-            /// <param name="aad"></param>
-            private void CreateByteTagWithAAD(byte[] aad)
+            private void CreateByteTagWithAAD()
             {
                 ByteTag = new byte[OutputBlockSize];
-                int blocks = aad.Length / 16;
-                byte[][] x = new byte[blocks][];
+                int blocks = (AdditionalData.Length % 16) == 0 ? AdditionalData.Length / 16 : AdditionalData.Length / 16 + 1;
+                byte[][] x = new byte[blocks + 1][];
                 x[0] = new byte[OutputBlockSize];
 
-                for (int i = 1; i < blocks; i++)
+                for (int i = 1; i <= blocks; i++)
                 {
                     byte[] aadBlock = new byte[OutputBlockSize];
-                    Array.Copy(aad, (i - 1) * 16, aadBlock, 0, 16);
+                    int length = AdditionalData.Length - ((i - 1) * 16) > 16 ? 16 : AdditionalData.Length - ((i - 1) * 16);
+                    Array.Copy(AdditionalData, (i - 1) * 16, aadBlock, 0, length);
                     x[i] = GaloisMultiplication.GMul128(GaloisMultiplication.Add(x[i - 1], aadBlock), H);
                 }
 
@@ -111,7 +122,7 @@ namespace Aes.AF
             private void CreateInitialCounter()
             {
                 InitialCounter = new byte[OutputBlockSize];
-                if (this.Aes.IV.Length == 96)
+                if (this.Aes.IV.Length == 12)
                 {
                     this.Aes.IV.CopyTo(InitialCounter, 0);
                     InitialCounter[InitialCounter.Length - 1] = 0x01;
@@ -160,14 +171,14 @@ namespace Aes.AF
             {
                 byte[] result = new byte[OutputBlockSize];
                 byte[] lArray = BitConverter.GetBytes(cipherLength);
-                if (!BitConverter.IsLittleEndian)
+                if (BitConverter.IsLittleEndian)
                     Array.Reverse(lArray);
                 Array.Copy(lArray, 0, result, result.Length - lArray.Length, lArray.Length);
 
                 lArray = BitConverter.GetBytes(aadLength);
-                if (!BitConverter.IsLittleEndian)
+                if (BitConverter.IsLittleEndian)
                     Array.Reverse(lArray);
-                Array.Copy(lArray, 0, result, 9 - lArray.Length, lArray.Length);
+                Array.Copy(lArray, 0, result, 8 - lArray.Length, lArray.Length);
 
                 return result;
             }
@@ -190,6 +201,12 @@ namespace Aes.AF
                 {
                     Counter[index] += 1;
                 } while (index >= 0 && Counter[index--] == 0);
+            }
+
+
+            private void SetTag()
+            {
+                Tag = BitConverter.ToString(ByteTag).Replace("-", string.Empty);
             }
 
             #region IAuthenticatedCryptoTransform
@@ -227,41 +244,31 @@ namespace Aes.AF
             {
                 this.LengthCipher += inputCount;
 
+                byte[] output = new byte[inputCount];
+
+                byte[] oBuffer = new byte[OutputBlockSize];
+
                 if (inputCount > 0)
                 {
                     IncrementCounter();
 
                     byte[] iBuffer = new byte[InputBlockSize];
-                    byte[] oBuffer = new byte[OutputBlockSize];
 
                     Array.Copy(inputBuffer, inputOffset, iBuffer, 0, InputBlockSize);
                     this.Aes.Encrypt(Counter, 0, oBuffer, 0);
                     oBuffer = this.Aes.AddRoundKey(iBuffer, oBuffer);
                     ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(oBuffer, ByteTag), H);
 
-                    byte[] output = new byte[inputCount];
                     Array.Copy(oBuffer, 0, output, 0, inputCount);
-
-                    byte[] length = ConvertToByteArray(AdditionalData.Length, LengthCipher);
-                    ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(ByteTag, length), H);
-                    this.Aes.Encrypt(InitialCounter, 0, oBuffer, 0);
-                    ByteTag = GaloisMultiplication.Add(oBuffer, ByteTag);
-
-                    Tag = BitConverter.ToString(ByteTag).Replace("-", string.Empty);
-
-                    return output;
                 }
-                else
-                {
-                    byte[] oBuffer = new byte[OutputBlockSize];
 
-                    byte[] length = ConvertToByteArray(AdditionalData.Length, LengthCipher);
-                    ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(ByteTag, length), H);
-                    this.Aes.Encrypt(InitialCounter, 0, oBuffer, 0);
-                    ByteTag = GaloisMultiplication.Add(oBuffer, ByteTag);
+                byte[] length = ConvertToByteArray(AdditionalData.Length, LengthCipher);
+                ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(ByteTag, length), H);
+                this.Aes.Encrypt(InitialCounter, 0, oBuffer, 0);
+                ByteTag = GaloisMultiplication.Add(oBuffer, ByteTag);
+                SetTag();
 
-                    return new byte[0];
-                }
+                return output;
             }
 
             public bool CanReuseTransform

@@ -22,7 +22,7 @@ using System.Text;
 // https://luca-giuzzi.unibs.it/corsi/Support/papers-cryptography/gcm-spec.pdf
 // https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
 // https://stackoverflow.com/questions/10655026/gcm-multiplication-implementation
-// http://www.ieee802.org/1/files/public/docs2011/bn-randall-test-vectors-0511-v1.pdf
+// http://www.ieee802.org/1/files/public/docs2011/bn-randall-test-vectors-0511-v1.pdf   with TestVectors
 // https://books.google.bg/books?id=VaiYIZHduXQC&pg=PA303&lpg=PA303&dq=ghash+input+and+output&source=bl&ots=GXUyzEcIXH&sig=ACfU3U1XsSY_WiPK9CUUoUktc_oPNQhg0g&hl=en&sa=X&ved=2ahUKEwjPqLvZnZ_qAhWjzYUKHSOyBxsQ6AEwDHoECAgQAQ#v=onepage&q=ghash%20input%20and%20output&f=false
 
 namespace Aes.AF
@@ -73,8 +73,7 @@ namespace Aes.AF
             int kSz = GetKeySize();
             if (kSz != byteKey.Length)
                 throw new ArgumentException($"Key length not equal {kSz}");
-            if (IV.Length != InputBlockSize)
-                throw new ArgumentException($"IV length not equal {InputBlockSize}");
+
             ByteKey = byteKey;
             this.IV = IV;
         }

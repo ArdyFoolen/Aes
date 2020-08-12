@@ -109,6 +109,28 @@ namespace Aes.Tests
             }
         }
 
+        public static IEnumerable<(byte[] In, byte[] Out, string ExpectedTag, Func<Aes.AF.Aes, Stream, Stream, string> Crypt)> EncryptDecryptGCM
+        {
+            get
+            {
+                byte[] key128 = new byte[] { 0xAD, 0x7A, 0x2B, 0xD0, 0x3E, 0xAC, 0x83, 0x5A, 0x6F, 0x62, 0x0F, 0xDC, 0xB5, 0x06, 0xB3, 0x45 };
+                byte[] IV = new byte[] { 0x12, 0x15, 0x35, 0x24, 0xC0, 0x89, 0x5E, 0x81, 0xB2, 0xC2, 0x84, 0x65 };
+                byte[] aad = new byte[] { 0xD6, 0x09, 0xB1, 0xF0, 0x56, 0x63, 0x7A, 0x0D, 0x46, 0xDF, 0x99, 0x8D, 0x88, 0xE5, 0x22, 0x2A,
+                                          0xB2, 0xC2, 0x84, 0x65, 0x12, 0x15, 0x35, 0x24, 0xC0, 0x89, 0x5E, 0x81, 0x08, 0x00, 0x0F, 0x10,
+                                          0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20,
+                                          0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30,
+                                          0x31, 0x32, 0x33, 0x34, 0x00, 0x01
+                };
+                byte[] plainBytes = new byte[] { };
+                byte[] cryptBytes = new byte[] { };
+                string tag = "F09478A9B09007D06F46E9B6A1DA25DD";
+                yield return (plainBytes, cryptBytes, tag, (aes, outStream, inStream) => EncryptGCM(aes, key128, IV, aad, AesKeySize.Aes128, outStream, inStream));
+                //yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => Decrypt(aes, key128, AesKeySize.Aes128, PaddingMode.None, outStream, inStream));
+            }
+        }
+
+        #region private Encrypt/Decrypt methods
+
         private static void Encrypt(AF.Aes aes, byte[] key, AesKeySize keySize, PaddingMode paddingMode, Stream outStream, Stream inStream)
         {
             using (var encryptStream = new CryptoStream(outStream, aes.CreateEncryptor(key, keySize, paddingMode), CryptoStreamMode.Write, true))
@@ -124,6 +146,18 @@ namespace Aes.Tests
                 encryptStream.ReadInto(outStream);
             }
         }
+
+        private static string EncryptGCM(AF.Aes aes, byte[] key, byte[] IV, byte[] aad, AesKeySize keySize, Stream outStream, Stream inStream)
+        {
+            var authenticatedTransform = aes.CreateEncryptor(key, IV, aad, keySize);
+            using (var encryptStream = new CryptoStream(outStream, authenticatedTransform, CryptoStreamMode.Write, true))
+            {
+                encryptStream.WriteFrom(inStream);
+            }
+            return authenticatedTransform.Tag;
+        }
+
+        #endregion
 
         #endregion
 

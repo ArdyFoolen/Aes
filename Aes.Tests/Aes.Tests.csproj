@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AesContext.cs" />
+    <Compile Include="AesGCMTests.cs" />
     <Compile Include="AesSourceHelper.cs" />
     <Compile Include="AesTests.cs" />
     <Compile Include="GaloisMultiplicationTests.cs" />
