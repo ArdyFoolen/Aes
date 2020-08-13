@@ -23,6 +23,7 @@ using System.Text;
 // https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
 // https://stackoverflow.com/questions/10655026/gcm-multiplication-implementation
 // http://www.ieee802.org/1/files/public/docs2011/bn-randall-test-vectors-0511-v1.pdf   with TestVectors
+// https://csrc.nist.rip/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-spec.pdf With Examples at the end to verify implementation
 // https://books.google.bg/books?id=VaiYIZHduXQC&pg=PA303&lpg=PA303&dq=ghash+input+and+output&source=bl&ots=GXUyzEcIXH&sig=ACfU3U1XsSY_WiPK9CUUoUktc_oPNQhg0g&hl=en&sa=X&ved=2ahUKEwjPqLvZnZ_qAhWjzYUKHSOyBxsQ6AEwDHoECAgQAQ#v=onepage&q=ghash%20input%20and%20output&f=false
 
 namespace Aes.AF

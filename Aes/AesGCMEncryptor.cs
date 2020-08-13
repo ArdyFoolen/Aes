@@ -141,8 +141,10 @@ namespace Aes.AF
             /// <returns></returns>
             private byte[] GHashIV(byte[] H, byte[] IV)
             {
-                int blocks = IV.Length / 16 + 2;
+                int blocks = IV.Length / 16;
+                blocks += IV.Length % 16 == 0 ? 1 : 2;
                 byte[][] x = new byte[blocks][];
+                x[0] = new byte[OutputBlockSize];
 
                 for (int i = 1; i < blocks; i++)
                 {
@@ -153,14 +155,14 @@ namespace Aes.AF
                     x[i] = GaloisMultiplication.GMul128(GaloisMultiplication.Add(x[i - 1], IVBlock), H);
                 }
 
-                return GaloisMultiplication.GMul128(GaloisMultiplication.Add(x[x.Length - 1], ConvertToByteArray(IV.Length)), H);
+                return GaloisMultiplication.GMul128(GaloisMultiplication.Add(x[x.Length - 1], ConvertToByteArray(IV.Length * 8)), H);
             }
 
             private byte[] ConvertToByteArray(int length)
             {
                 byte[] result = new byte[OutputBlockSize];
                 byte[] lArray = BitConverter.GetBytes(length);
-                if (!BitConverter.IsLittleEndian)
+                if (BitConverter.IsLittleEndian)
                     Array.Reverse(lArray);
                 Array.Copy(lArray, 0, result, result.Length - lArray.Length, lArray.Length);
 
@@ -257,12 +259,14 @@ namespace Aes.AF
                     Array.Copy(inputBuffer, inputOffset, iBuffer, 0, InputBlockSize);
                     this.Aes.Encrypt(Counter, 0, oBuffer, 0);
                     oBuffer = this.Aes.AddRoundKey(iBuffer, oBuffer);
+
+                    Array.Clear(oBuffer, inputCount, oBuffer.Length - inputCount);
                     ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(oBuffer, ByteTag), H);
 
                     Array.Copy(oBuffer, 0, output, 0, inputCount);
                 }
 
-                byte[] length = ConvertToByteArray(AdditionalData.Length, LengthCipher);
+                byte[] length = ConvertToByteArray(AdditionalData.Length * 8, LengthCipher * 8);
                 ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(ByteTag, length), H);
                 this.Aes.Encrypt(InitialCounter, 0, oBuffer, 0);
                 ByteTag = GaloisMultiplication.Add(oBuffer, ByteTag);

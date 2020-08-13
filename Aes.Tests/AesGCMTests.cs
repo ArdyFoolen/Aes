@@ -27,12 +27,12 @@ namespace Aes.Tests
 
                 // Assert
                 outStream.Seek(0, SeekOrigin.Begin);
-                byte[] actual = new byte[17];
-                int bytesRead = outStream.Read(actual, 0, 17);
+                byte[] actual = new byte[values.Out.Length + 1];
+                int bytesRead = outStream.Read(actual, 0, values.Out.Length + 1);
 
                 Assert.AreEqual(values.In.Length, bytesRead);
                 Assert.That(values.Out.Select((b, i) => new { value = b, index = i }).All(a => actual[a.index] == a.value));
-                Assert.AreEqual(values.ExpectedTag, actualTag);
+                Assert.AreEqual(values.ExpectedTag.ToUpperInvariant(), actualTag.ToUpperInvariant());
             }
         }
     }
