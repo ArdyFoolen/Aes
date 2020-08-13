@@ -35,6 +35,32 @@ namespace Aes.AF
             return new AesGCMEncryptor(aes, additionalData);
         }
 
+        public IAuthenticatedCryptoTransform CreateDecryptor(byte[] key, byte[] IV, string additionalData, AesKeySize keySize = AesKeySize.Aes128)
+        {
+            byte[] newIV = new byte[IV.Length];
+            Array.Copy(IV, 0, newIV, 0, IV.Length);
+
+            Aes aes = new Aes(key, newIV, keySize);
+            aes.PaddingMode = PaddingMode.None;
+            aes.EncryptMode = EncryptModeEnum.GCM;
+            aes.InitializeRoundKey();
+
+            return new AesGCMEncryptor(aes, additionalData, false);
+        }
+
+        public IAuthenticatedCryptoTransform CreateDecryptor(byte[] key, byte[] IV, byte[] additionalData, AesKeySize keySize = AesKeySize.Aes128)
+        {
+            byte[] newIV = new byte[IV.Length];
+            Array.Copy(IV, 0, newIV, 0, IV.Length);
+
+            Aes aes = new Aes(key, newIV, keySize);
+            aes.PaddingMode = PaddingMode.None;
+            aes.EncryptMode = EncryptModeEnum.GCM;
+            aes.InitializeRoundKey();
+
+            return new AesGCMEncryptor(aes, additionalData, false);
+        }
+
         private class AesGCMEncryptor : IAuthenticatedCryptoTransform, IDisposable
         {
             private Aes Aes { get; }
@@ -46,18 +72,22 @@ namespace Aes.AF
             private byte[] ByteTag { get; set; }
             private int LengthCipher { get; set; }
 
-            public AesGCMEncryptor(Aes aes, string additionalData)
+            private bool Encrypt { get; set; }
+
+            public AesGCMEncryptor(Aes aes, string additionalData, bool encrypt = true)
             {
                 this.Aes = aes;
                 this.AdditionalData = ConvertAdditionalDataToByteArray(additionalData);
+                this.Encrypt = encrypt;
 
                 Initialize();
             }
 
-            public AesGCMEncryptor(Aes aes, byte[] additionalData)
+            public AesGCMEncryptor(Aes aes, byte[] additionalData, bool encrypt = true)
             {
                 this.Aes = aes;
                 this.AdditionalData = additionalData;
+                this.Encrypt = encrypt;
 
                 Initialize();
             }
@@ -234,7 +264,11 @@ namespace Aes.AF
                     Array.Copy(inputBuffer, inputOffset + i, iBuffer, 0, InputBlockSize);
                     this.Aes.Encrypt(Counter, 0, oBuffer, 0);
                     oBuffer = this.Aes.AddRoundKey(iBuffer, oBuffer);
-                    ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(oBuffer, ByteTag), H);
+
+                    if (Encrypt)
+                        ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(oBuffer, ByteTag), H);
+                    else
+                        ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(iBuffer, ByteTag), H);
 
                     Array.Copy(oBuffer, 0, outputBuffer, outputOffset + i, OutputBlockSize);
                 }
@@ -260,8 +294,13 @@ namespace Aes.AF
                     this.Aes.Encrypt(Counter, 0, oBuffer, 0);
                     oBuffer = this.Aes.AddRoundKey(iBuffer, oBuffer);
 
-                    Array.Clear(oBuffer, inputCount, oBuffer.Length - inputCount);
-                    ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(oBuffer, ByteTag), H);
+                    if (Encrypt)
+                    {
+                        Array.Clear(oBuffer, inputCount, oBuffer.Length - inputCount);
+                        ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(oBuffer, ByteTag), H);
+                    }
+                    else
+                        ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(iBuffer, ByteTag), H);
 
                     Array.Copy(oBuffer, 0, output, 0, inputCount);
                 }

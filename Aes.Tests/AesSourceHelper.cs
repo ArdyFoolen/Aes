@@ -120,11 +120,13 @@ namespace Aes.Tests
                 byte[] cryptBytes = new byte[] { };
                 string tag = "58e2fccefa7e3061367f1d57a4e7455a";
                 yield return (plainBytes, cryptBytes, tag, (aes, outStream, inStream) => EncryptGCM(aes, key128, IV, aad, AesKeySize.Aes128, outStream, inStream));
+                yield return (cryptBytes, plainBytes, tag, (aes, outStream, inStream) => DecryptGCM(aes, key128, IV, aad, AesKeySize.Aes128, outStream, inStream));
 
                 plainBytes = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
                 cryptBytes = new byte[] { 0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe, 0x78 };
                 tag = "ab6e47d42cec13bdf53a67b21257bddf";
                 yield return (plainBytes, cryptBytes, tag, (aes, outStream, inStream) => EncryptGCM(aes, key128, IV, aad, AesKeySize.Aes128, outStream, inStream));
+                yield return (cryptBytes, plainBytes, tag, (aes, outStream, inStream) => DecryptGCM(aes, key128, IV, aad, AesKeySize.Aes128, outStream, inStream));
 
                 byte[] key1282 = new byte[] { 0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };
                 byte[] IV2 = new byte[] { 0xca, 0xfe, 0xba, 0xbe, 0xfa, 0xce, 0xdb, 0xad, 0xde, 0xca, 0xf8, 0x88 };
@@ -138,6 +140,7 @@ namespace Aes.Tests
                                           0x1b, 0xa3, 0x0b, 0x39, 0x6a, 0x0a, 0xac, 0x97, 0x3d, 0x58, 0xe0, 0x91, 0x47, 0x3f, 0x59, 0x85 };
                 tag = "4d5c2af327cd64a62cf35abd2ba6fab4";
                 yield return (plainBytes, cryptBytes, tag, (aes, outStream, inStream) => EncryptGCM(aes, key1282, IV2, aad, AesKeySize.Aes128, outStream, inStream));
+                yield return (cryptBytes, plainBytes, tag, (aes, outStream, inStream) => DecryptGCM(aes, key1282, IV2, aad, AesKeySize.Aes128, outStream, inStream));
 
                 byte[] aad2 = new byte[] { 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef, 0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef,
                                            0xab, 0xad, 0xda, 0xd2 };
@@ -151,6 +154,7 @@ namespace Aes.Tests
                                           0x1b, 0xa3, 0x0b, 0x39, 0x6a, 0x0a, 0xac, 0x97, 0x3d, 0x58, 0xe0, 0x91 };
                 tag = "5bc94fbc3221a5db94fae95ae7121a47";
                 yield return (plainBytes, cryptBytes, tag, (aes, outStream, inStream) => EncryptGCM(aes, key1282, IV2, aad2, AesKeySize.Aes128, outStream, inStream));
+                yield return (cryptBytes, plainBytes, tag, (aes, outStream, inStream) => DecryptGCM(aes, key1282, IV2, aad2, AesKeySize.Aes128, outStream, inStream));
 
                 byte[] IV3 = new byte[] { 0xca, 0xfe, 0xba, 0xbe, 0xfa, 0xce, 0xdb, 0xad };
                 cryptBytes = new byte[] { 0x61, 0x35, 0x3b, 0x4c, 0x28, 0x06, 0x93, 0x4a, 0x77, 0x7f, 0xf5, 0x1f, 0xa2, 0x2a, 0x47, 0x55,
@@ -159,6 +163,7 @@ namespace Aes.Tests
                                           0x49, 0x89, 0xb5, 0xe1, 0xeb, 0xac, 0x0f, 0x07, 0xc2, 0x3f, 0x45, 0x98 };
                 tag = "3612d2e79e3b0785561be14aaca2fccb";
                 yield return (plainBytes, cryptBytes, tag, (aes, outStream, inStream) => EncryptGCM(aes, key1282, IV3, aad2, AesKeySize.Aes128, outStream, inStream));
+                yield return (cryptBytes, plainBytes, tag, (aes, outStream, inStream) => DecryptGCM(aes, key1282, IV3, aad2, AesKeySize.Aes128, outStream, inStream));
 
                 byte[] IV4 = new byte[] { 0x93, 0x13, 0x22, 0x5d, 0xf8, 0x84, 0x06, 0xe5, 0x55, 0x90, 0x9c, 0x5a, 0xff, 0x52, 0x69, 0xaa,
                                           0x6a, 0x7a, 0x95, 0x38, 0x53, 0x4f, 0x7d, 0xa1, 0xe4, 0xc3, 0x03, 0xd2, 0xa3, 0x18, 0xa7, 0x28,
@@ -170,6 +175,7 @@ namespace Aes.Tests
                                           0xd6, 0x28, 0x75, 0xd2, 0xac, 0xa4, 0x17, 0x03, 0x4c, 0x34, 0xae, 0xe5 };
                 tag = "619cc5aefffe0bfa462af43c1699d050";
                 yield return (plainBytes, cryptBytes, tag, (aes, outStream, inStream) => EncryptGCM(aes, key1282, IV4, aad2, AesKeySize.Aes128, outStream, inStream));
+                yield return (cryptBytes, plainBytes, tag, (aes, outStream, inStream) => DecryptGCM(aes, key1282, IV4, aad2, AesKeySize.Aes128, outStream, inStream));
 
                 //key128 = new byte[] { 0xAD, 0x7A, 0x2B, 0xD0, 0x3E, 0xAC, 0x83, 0x5A, 0x6F, 0x62, 0x0F, 0xDC, 0xB5, 0x06, 0xB3, 0x45 };
                 //IV = new byte[] { 0x12, 0x15, 0x35, 0x24, 0xC0, 0x89, 0x5E, 0x81, 0xB2, 0xC2, 0x84, 0x65 };
@@ -211,6 +217,16 @@ namespace Aes.Tests
             using (var encryptStream = new CryptoStream(outStream, authenticatedTransform, CryptoStreamMode.Write, true))
             {
                 encryptStream.WriteFrom(inStream);
+            }
+            return authenticatedTransform.Tag;
+        }
+
+        private static string DecryptGCM(AF.Aes aes, byte[] key, byte[] IV, byte[] aad, AesKeySize keySize, Stream outStream, Stream inStream)
+        {
+            var authenticatedTransform = aes.CreateDecryptor(key, IV, aad, keySize);
+            using (var encryptStream = new CryptoStream(inStream, authenticatedTransform, CryptoStreamMode.Read, true))
+            {
+                encryptStream.ReadInto(outStream);
             }
             return authenticatedTransform.Tag;
         }
