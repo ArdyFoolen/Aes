@@ -9,46 +9,21 @@ namespace Aes.AF
 {
     public partial class Aes
     {
-        public IAuthenticatedCryptoTransform CreateEncryptor(byte[] key, byte[] IV, string additionalData, AesKeySize keySize = AesKeySize.Aes128)
-        {
-            byte[] newIV = new byte[IV.Length];
-            Array.Copy(IV, 0, newIV, 0, IV.Length);
-
-            Aes aes = new Aes(key, newIV, keySize);
-            aes.PaddingMode = PaddingMode.None;
-            aes.EncryptMode = EncryptModeEnum.GCM;
-            aes.InitializeRoundKey();
-
-            return new AesGCMEncryptor(aes, additionalData);
-        }
-
         public IAuthenticatedCryptoTransform CreateEncryptor(byte[] key, byte[] IV, byte[] additionalData, AesKeySize keySize = AesKeySize.Aes128)
         {
-            byte[] newIV = new byte[IV.Length];
-            Array.Copy(IV, 0, newIV, 0, IV.Length);
-
-            Aes aes = new Aes(key, newIV, keySize);
-            aes.PaddingMode = PaddingMode.None;
-            aes.EncryptMode = EncryptModeEnum.GCM;
-            aes.InitializeRoundKey();
+            Aes aes = CreateAesGcm(key, IV, keySize);
 
             return new AesGCMEncryptor(aes, additionalData);
         }
 
-        public IAuthenticatedCryptoTransform CreateDecryptor(byte[] key, byte[] IV, string additionalData, AesKeySize keySize = AesKeySize.Aes128)
+        public IAuthenticatedCryptoTransform CreateDecryptor(byte[] key, byte[] IV, byte[] additionalData, string tag, AesKeySize keySize = AesKeySize.Aes128)
         {
-            byte[] newIV = new byte[IV.Length];
-            Array.Copy(IV, 0, newIV, 0, IV.Length);
+            Aes aes = CreateAesGcm(key, IV, keySize);
 
-            Aes aes = new Aes(key, newIV, keySize);
-            aes.PaddingMode = PaddingMode.None;
-            aes.EncryptMode = EncryptModeEnum.GCM;
-            aes.InitializeRoundKey();
-
-            return new AesGCMEncryptor(aes, additionalData, false);
+            return new AesGCMEncryptor(aes, additionalData, tag);
         }
 
-        public IAuthenticatedCryptoTransform CreateDecryptor(byte[] key, byte[] IV, byte[] additionalData, AesKeySize keySize = AesKeySize.Aes128)
+        private static Aes CreateAesGcm(byte[] key, byte[] IV, AesKeySize keySize)
         {
             byte[] newIV = new byte[IV.Length];
             Array.Copy(IV, 0, newIV, 0, IV.Length);
@@ -57,14 +32,13 @@ namespace Aes.AF
             aes.PaddingMode = PaddingMode.None;
             aes.EncryptMode = EncryptModeEnum.GCM;
             aes.InitializeRoundKey();
-
-            return new AesGCMEncryptor(aes, additionalData, false);
+            return aes;
         }
 
         private class AesGCMEncryptor : IAuthenticatedCryptoTransform, IDisposable
         {
-            private Aes Aes { get; }
-            private byte[] AdditionalData { get; }
+            private Aes Aes { get; set; }
+            private byte[] AdditionalData { get; set; }
 
             private byte[] H { get; set; }
             private byte[] InitialCounter { get; set; }
@@ -74,30 +48,42 @@ namespace Aes.AF
 
             private bool Encrypt { get; set; }
 
-            public AesGCMEncryptor(Aes aes, string additionalData, bool encrypt = true)
+            /// <summary>
+            /// Ctor to encrypt
+            /// </summary>
+            /// <param name="aes"></param>
+            /// <param name="additionalData"></param>
+            public AesGCMEncryptor(Aes aes, byte[] additionalData)
             {
-                this.Aes = aes;
-                this.AdditionalData = ConvertAdditionalDataToByteArray(additionalData);
-                this.Encrypt = encrypt;
-
-                Initialize();
+                Initialize(aes, additionalData);
             }
 
-            public AesGCMEncryptor(Aes aes, byte[] additionalData, bool encrypt = true)
+            /// <summary>
+            /// Ctor to decrypt
+            /// </summary>
+            /// <param name="aes"></param>
+            /// <param name="additionalData"></param>
+            /// <param name="tag"></param>
+            public AesGCMEncryptor(Aes aes, byte[] additionalData, string tag)
             {
-                this.Aes = aes;
-                this.AdditionalData = additionalData;
-                this.Encrypt = encrypt;
-
-                Initialize();
+                Initialize(aes, additionalData, tag, false);
             }
 
-            private void Initialize()
+            private void Initialize(Aes aes, byte[] additionalData, string tag = "", bool encrypt = true)
             {
+                SetProperties(aes, additionalData, tag, encrypt);
                 CreateHashKey();
                 CreateInitialCounter();
                 CreateCounter();
                 CreateByteTagWithAAD();
+            }
+
+            private void SetProperties(Aes aes, byte[] additionalData, string tag, bool encrypt)
+            {
+                this.Aes = aes;
+                this.AdditionalData = additionalData;
+                this.Tag = tag;
+                this.Encrypt = encrypt;
             }
 
             /// <summary>
@@ -309,7 +295,10 @@ namespace Aes.AF
                 ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(ByteTag, length), H);
                 this.Aes.Encrypt(InitialCounter, 0, oBuffer, 0);
                 ByteTag = GaloisMultiplication.Add(oBuffer, ByteTag);
-                SetTag();
+                if (Encrypt)
+                    SetTag();
+                else if (!BitConverter.ToString(ByteTag).Replace("-", string.Empty).ToUpperInvariant().Equals(Tag.ToUpperInvariant()))
+                    throw new AuthenticatedException($"Aes Gcm-mode decryption is not authenticated");
 
                 return output;
             }
