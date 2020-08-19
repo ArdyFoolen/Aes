@@ -37,6 +37,8 @@ namespace Aes.AF
 
         private class AesGCMEncryptor : IAuthenticatedCryptoTransform, IDisposable
         {
+            #region Properties
+
             private Aes Aes { get; set; }
             private byte[] AdditionalData { get; set; }
 
@@ -47,6 +49,10 @@ namespace Aes.AF
             private int LengthCipher { get; set; }
 
             private bool Encrypt { get; set; }
+
+            #endregion
+
+            #region Ctors
 
             /// <summary>
             /// Ctor to encrypt
@@ -68,6 +74,10 @@ namespace Aes.AF
             {
                 Initialize(aes, additionalData, tag, false);
             }
+
+            #endregion
+
+            #region Private methods
 
             private void Initialize(Aes aes, byte[] additionalData, string tag = "", bool encrypt = true)
             {
@@ -107,19 +117,6 @@ namespace Aes.AF
                 }
 
                 Array.Copy(x[x.Length - 1], 0, ByteTag, 0, OutputBlockSize);
-            }
-
-            /// <summary>
-            /// Create multitude of 16 byte blocks for AAD
-            /// </summary>
-            /// <param name="additionalData"></param>
-            /// <returns></returns>
-            private byte[] ConvertAdditionalDataToByteArray(string additionalData)
-            {
-                byte[] aad = Encoding.ASCII.GetBytes(additionalData);
-                byte[] result = new byte[(additionalData.Length % 16) == 0 ? additionalData.Length : (additionalData.Length / 16) * 16 + 1];
-                Array.Copy(aad, 0, result, 0, aad.Length);
-                return result;
             }
 
             private void CreateCounter()
@@ -221,11 +218,23 @@ namespace Aes.AF
                 } while (index >= 0 && Counter[index--] == 0);
             }
 
-
             private void SetTag()
             {
                 Tag = BitConverter.ToString(ByteTag).Replace("-", string.Empty);
             }
+
+            private bool IsAuthentic()
+            {
+                return BitConverter.ToString(ByteTag).Replace("-", string.Empty).ToUpperInvariant().Equals(Tag.ToUpperInvariant());
+            }
+
+            private void AssertAuthentication()
+            {
+                if (!IsAuthentic())
+                    throw new AuthenticatedException($"Aes Gcm-mode decryption is not authenticated");
+            }
+
+            #endregion
 
             #region IAuthenticatedCryptoTransform
 
@@ -295,10 +304,10 @@ namespace Aes.AF
                 ByteTag = GaloisMultiplication.GMul128(GaloisMultiplication.Add(ByteTag, length), H);
                 this.Aes.Encrypt(InitialCounter, 0, oBuffer, 0);
                 ByteTag = GaloisMultiplication.Add(oBuffer, ByteTag);
+
                 if (Encrypt)
                     SetTag();
-                else if (!BitConverter.ToString(ByteTag).Replace("-", string.Empty).ToUpperInvariant().Equals(Tag.ToUpperInvariant()))
-                    throw new AuthenticatedException($"Aes Gcm-mode decryption is not authenticated");
+                else AssertAuthentication();
 
                 return output;
             }
