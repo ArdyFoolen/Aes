@@ -30,7 +30,7 @@ Aes implementation
 	Here the IV is encrypted and after encryption XORed with the plain text.
 	This is a streaming encryption and no padding is needed.
 	
-- [ ] Galois Counter Mode (GCM)
+- [x] Galois Counter Mode (GCM)
 
 	This is Authenticated Encryption with Associated Data (AEAD)
 
