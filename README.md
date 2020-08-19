@@ -18,7 +18,7 @@ Aes implementation
 
 	Every block is encrypted and decrypted separately.
 	
-- [x] Cipher Block Chain (CBC
+- [x] Cipher Block Chain (CBC)
 
 	Before encryption the plain text block is XORed with the previous cipher text block,
 	except the first block which is XORed with an initialization vector (IV).
