@@ -67,6 +67,32 @@ namespace Aes.App
                 encryptStream.ReadInto(writer);
             }
 
+            // GCM encryption
+            IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x0b, 0x0c };
+            string ad = "ThisIsMyAuthenticatedDataWhatEverIWantAndHowLongIWant";
+            byte[] aad = GetKey(ad, ad.Length);
+            IAuthenticatedCryptoTransform transform;
+            using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
+            using (FileStream writer = new FileStream("EncryptedGCMFile.txt", FileMode.Create))
+            using (transform = aes.CreateEncryptor(GetKey("Thats my Kung Fu", 16), IV, aad, AesKeySize.Aes128))
+            using (var encryptStream = new CryptoStream(writer, transform, CryptoStreamMode.Write))
+            {
+                encryptStream.WriteFrom(stream);
+            }
+            string tag = transform.Tag;
+
+            // GCM decryption
+            IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x0b, 0x0c };
+            ad = "ThisIsMyAuthenticatedDataWhatEverIWantAndHowLongIWant";
+            aad = GetKey(ad, ad.Length);
+            using (Stream stream = new FileStream("EncryptedGCMFile.txt", FileMode.Open))
+            using (FileStream writer = new FileStream("DecryptedGCMFile.txt", FileMode.Create))
+            using (transform = aes.CreateDecryptor(GetKey("Thats my Kung Fu", 16), IV, aad, tag, AesKeySize.Aes128))
+            using (var encryptStream = new CryptoStream(stream, transform, CryptoStreamMode.Read))
+            {
+                encryptStream.ReadInto(writer);
+            }
+
             Console.ReadKey();
         }
 
