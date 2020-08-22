@@ -17,21 +17,21 @@ namespace Aes.Tests
         public void RoundKey_Expanded_Correct((byte[] Key, AesKeySize KeySize, byte[][] ExpectedRoundKeys) values)
         {
             // Arrange
-            AesContext aes = new AesContext(values.Key, values.KeySize);
+            AesManagerContext aesManager = new AesManagerContext(values.Key, values.KeySize);
 
             // Act
-            aes.InitializeKey();
+            aesManager.InitializeKey();
 
             // Assert
-            Assert.AreEqual(values.ExpectedRoundKeys.Length, aes.RoundKeyLength);
+            Assert.AreEqual(values.ExpectedRoundKeys.Length, aesManager.RoundKeyLength);
             for (int r = 0; r < values.ExpectedRoundKeys.Length; r++)
-                Assert.That(values.ExpectedRoundKeys[r].Select((b, i) => new { value = b, index = i }).All(a => aes.GetRoundKey(r)[a.index] == a.value));
+                Assert.That(values.ExpectedRoundKeys[r].Select((b, i) => new { value = b, index = i }).All(a => aesManager.GetRoundKey(r)[a.index] == a.value));
         }
 
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecrypt")]
-        public void EnDecrypt_EachStep_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream, Stream> Crypt) values)
+        public void EnDecrypt_EachStep_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
         {
-            AesContext aes = new AesContext();
+            AesManagerContext aesManager = new AesManagerContext();
             using (Stream inStream = new MemoryStream())
             {
                 // Arrange
@@ -40,7 +40,7 @@ namespace Aes.Tests
 
                 // Act
                 Stream outStream = new MemoryStream();
-                values.Crypt(aes, outStream, inStream);
+                values.Crypt(aesManager, outStream, inStream);
 
                 // Assert
                 outStream.Seek(0, SeekOrigin.Begin);
@@ -53,11 +53,11 @@ namespace Aes.Tests
         }
 
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptDifferentPadding")]
-        public void EnDecrypt_DifferentPadding_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream, Stream> Crypt) values)
+        public void EnDecrypt_DifferentPadding_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
         {
             indexR = 0;
             PaddingFactory.DiRandomByte = () => GetRandomByte();
-            AesContext aes = new AesContext();
+            AesManagerContext aesManager = new AesManagerContext();
             using (Stream inStream = new MemoryStream())
             {
                 // Arrange
@@ -66,7 +66,7 @@ namespace Aes.Tests
 
                 // Act
                 Stream outStream = new MemoryStream();
-                values.Crypt(aes, outStream, inStream);
+                values.Crypt(aesManager, outStream, inStream);
 
                 // Assert
                 outStream.Seek(0, SeekOrigin.Begin);

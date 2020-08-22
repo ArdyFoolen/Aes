@@ -48,8 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AesContext.cs" />
     <Compile Include="AesGCMTests.cs" />
+    <Compile Include="AesManagerContext.cs" />
     <Compile Include="AesSourceHelper.cs" />
     <Compile Include="AesTests.cs" />
     <Compile Include="GaloisMultiplicationTests.cs" />

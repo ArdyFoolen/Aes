@@ -12,9 +12,9 @@ namespace Aes.Tests
     public class AesGCMTests
     {
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptGCM")]
-        public void EnDecrypt_Tag_ShouldBeCorrect((byte[] In, byte[] Out, string ExpectedTag, Func<Aes.AF.Aes, Stream, Stream, string> Crypt) values)
+        public void EnDecrypt_Tag_ShouldBeCorrect((byte[] In, byte[] Out, string ExpectedTag, Func<Aes.AF.AesManager, Stream, Stream, string> Crypt) values)
         {
-            AesContext aes = new AesContext();
+            AesManagerContext aesManager = new AesManagerContext();
             using (Stream inStream = new MemoryStream())
             {
                 // Arrange
@@ -23,7 +23,7 @@ namespace Aes.Tests
 
                 // Act
                 Stream outStream = new MemoryStream();
-                string actualTag = values.Crypt(aes, outStream, inStream);
+                string actualTag = values.Crypt(aesManager, outStream, inStream);
 
                 // Assert
                 outStream.Seek(0, SeekOrigin.Begin);

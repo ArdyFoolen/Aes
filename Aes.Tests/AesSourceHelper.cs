@@ -13,7 +13,7 @@ namespace Aes.Tests
     {
         #region EncryptDecrypt
 
-        public static IEnumerable<(byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream, Stream> Crypt)> EncryptDecrypt
+        public static IEnumerable<(byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt)> EncryptDecrypt
         {
             get
             {
@@ -37,7 +37,7 @@ namespace Aes.Tests
             }
         }
 
-        public static IEnumerable<(byte[] In, byte[] Out, Action<Aes.AF.Aes, Stream, Stream> Crypt)> EncryptDecryptDifferentPadding
+        public static IEnumerable<(byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt)> EncryptDecryptDifferentPadding
         {
             get
             {
@@ -109,7 +109,7 @@ namespace Aes.Tests
             }
         }
 
-        public static IEnumerable<(byte[] In, byte[] Out, string ExpectedTag, Func<Aes.AF.Aes, Stream, Stream, string> Crypt)> EncryptDecryptGCM
+        public static IEnumerable<(byte[] In, byte[] Out, string ExpectedTag, Func<Aes.AF.AesManager, Stream, Stream, string> Crypt)> EncryptDecryptGCM
         {
             get
             {
@@ -331,26 +331,26 @@ namespace Aes.Tests
 
         #region private Encrypt/Decrypt methods
 
-        private static void Encrypt(AF.Aes aes, byte[] key, AesKeySize keySize, PaddingMode paddingMode, Stream outStream, Stream inStream)
+        private static void Encrypt(AF.AesManager aesManager, byte[] key, AesKeySize keySize, PaddingMode paddingMode, Stream outStream, Stream inStream)
         {
-            using (var encryptStream = new CryptoStream(outStream, aes.CreateEncryptor(key, keySize, paddingMode), CryptoStreamMode.Write, true))
+            using (var encryptStream = new CryptoStream(outStream, aesManager.CreateEncryptor(key, keySize, paddingMode), CryptoStreamMode.Write, true))
             {
                 encryptStream.WriteFrom(inStream);
             }
         }
 
-        private static void Decrypt(AF.Aes aes, byte[] key, AesKeySize keySize, PaddingMode paddingMode, Stream outStream, Stream inStream)
+        private static void Decrypt(AF.AesManager aesManager, byte[] key, AesKeySize keySize, PaddingMode paddingMode, Stream outStream, Stream inStream)
         {
-            using (var encryptStream = new CryptoStream(inStream, aes.CreateDecryptor(key, keySize, paddingMode), CryptoStreamMode.Read, true))
+            using (var encryptStream = new CryptoStream(inStream, aesManager.CreateDecryptor(key, keySize, paddingMode), CryptoStreamMode.Read, true))
             {
                 encryptStream.ReadInto(outStream);
             }
         }
 
-        private static string EncryptGCM(AF.Aes aes, byte[] key, byte[] IV, byte[] aad, AesKeySize keySize, Stream outStream, Stream inStream)
+        private static string EncryptGCM(AF.AesManager aesManager, byte[] key, byte[] IV, byte[] aad, AesKeySize keySize, Stream outStream, Stream inStream)
         {
             IAuthenticatedCryptoTransform authenticatedTransform;
-            using (authenticatedTransform = aes.CreateEncryptor(key, IV, aad, keySize))
+            using (authenticatedTransform = aesManager.CreateEncryptor(key, IV, aad, keySize))
             using (var encryptStream = new CryptoStream(outStream, authenticatedTransform, CryptoStreamMode.Write, true))
             {
                 encryptStream.WriteFrom(inStream);
@@ -358,10 +358,10 @@ namespace Aes.Tests
             return authenticatedTransform.Tag;
         }
 
-        private static string DecryptGCM(AF.Aes aes, byte[] key, byte[] IV, byte[] aad, string tag, AesKeySize keySize, Stream outStream, Stream inStream)
+        private static string DecryptGCM(AF.AesManager aesManager, byte[] key, byte[] IV, byte[] aad, string tag, AesKeySize keySize, Stream outStream, Stream inStream)
         {
             IAuthenticatedCryptoTransform authenticatedTransform;
-            using (authenticatedTransform = aes.CreateDecryptor(key, IV, aad, tag, keySize))
+            using (authenticatedTransform = aesManager.CreateDecryptor(key, IV, aad, tag, keySize))
             using (var encryptStream = new CryptoStream(inStream, authenticatedTransform, CryptoStreamMode.Read, true))
             {
                 encryptStream.ReadInto(outStream);

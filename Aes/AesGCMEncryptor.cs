@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 
 namespace Aes.AF
 {
-    public partial class Aes
+    public partial class AesManager
     {
         public IAuthenticatedCryptoTransform CreateEncryptor(byte[] key, byte[] IV, byte[] additionalData, AesKeySize keySize = AesKeySize.Aes128)
         {

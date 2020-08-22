@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Aes.AF
 {
-    public partial class Aes
+    public partial class AesManager
     {
         public ICryptoTransform CreateEncryptor(byte[] key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
         {

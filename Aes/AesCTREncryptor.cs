@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Aes.AF
 {
-    public partial class Aes
+    public partial class AesManager
     {
         private class AesCTREncryptor : ICryptoTransform, IDisposable
         {
