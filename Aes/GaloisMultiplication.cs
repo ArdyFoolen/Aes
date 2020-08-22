@@ -60,39 +60,13 @@ namespace Aes.AF
             for (int counter = 0; counter < 128; counter++)
             {
                 byte mask = (byte)(-((b[counter / 8] >> (7 - (counter % 8))) & 1));
-                AddToFirst(z, v, mask);
+                z.AddToFirst(v, mask);
                 mask = (byte)(-(v[v.Length - 1] & 1));
-                ShiftRight(v);
+                v.ShiftRight();
                 v[0] ^= (byte)(0xe1 & mask);
             }
 
             return z;
-        }
-
-        public static byte[] Add(byte[] a, byte[] b)
-        {
-            int l = (a?.Length ?? 0) > (b?.Length ?? 0) ? a.Length : b.Length;
-            byte[] result = new byte[l];
-            for (int i = 0; i < l; i++)
-            {
-                byte first = i < (a?.Length ?? 0) ? a[i] : (byte)0x00;
-                byte second = i < (b?.Length ?? 0) ? b[i] : (byte)0x00;
-                result[i] = (byte)(first ^ second);
-            }
-            return result;
-        }
-
-        private static void AddToFirst(byte[] first, byte[] add, byte mask)
-        {
-            for (int i = 0; i < first.Length; i++)
-                first[i] ^= (byte)(add[i] & mask);
-        }
-
-        private static void ShiftRight(byte[] y)
-        {
-            for (int i = y.Length - 1; i > 0; i--)
-                y[i] = (byte)(((y[i] >> 1)) | ((y[i - 1] << 7) & 0x80));
-            y[0] >>= 1;
         }
 
         #endregion

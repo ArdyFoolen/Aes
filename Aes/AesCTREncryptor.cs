@@ -57,7 +57,7 @@ namespace Aes.AF
 
                     Array.Copy(inputBuffer, inputOffset + i, iBuffer, 0, InputBlockSize);
                     this.Aes.Encrypt(this.Aes.IV, 0, oBuffer, 0);
-                    oBuffer = this.Aes.AddRoundKey(iBuffer, oBuffer);
+                    oBuffer = iBuffer.Add(oBuffer);
 
                     IncrementCounter();
 
@@ -76,7 +76,7 @@ namespace Aes.AF
 
                     Array.Copy(inputBuffer, inputOffset, iBuffer, 0, InputBlockSize);
                     this.Aes.Encrypt(this.Aes.IV, 0, oBuffer, 0);
-                    oBuffer = this.Aes.AddRoundKey(iBuffer, oBuffer);
+                    oBuffer = iBuffer.Add(oBuffer);
 
                     byte[] output = new byte[inputCount];
                     Array.Copy(oBuffer, 0, output, 0, inputCount);

@@ -277,18 +277,6 @@ namespace Aes.AF
 
             #endregion
 
-            #region AddRoundKey
-
-            public virtual byte[] AddRoundKey(byte[] input, byte[] key)
-            {
-                byte[] output = new byte[input.Length];
-                for (int i = 0; i < input.Length; i++)
-                    output[i] = (byte)(input[i] ^ key[i]);
-                return output;
-            }
-
-            #endregion
-
             #region Byte(Inverse)Substitution
 
             private byte substituteByte(byte from)
@@ -405,7 +393,7 @@ namespace Aes.AF
                 byte[] output = new byte[input.Length];
                 output = ByteSubstitution(input);
                 output = ShiftRows(output);
-                output = AddRoundKey(output, key);
+                output = output.Add(key);
                 return output;
             }
 
@@ -415,7 +403,7 @@ namespace Aes.AF
                 output = ByteSubstitution(input);
                 output = ShiftRows(output);
                 output = MixColumns(output);
-                output = AddRoundKey(output, key);
+                output = output.Add(key);
                 return output;
             }
 
@@ -423,7 +411,7 @@ namespace Aes.AF
             {
                 byte[] buffer = new byte[InputBlockSize];
                 Array.Copy(inputBuffer, inputOffset, buffer, 0, InputBlockSize);
-                buffer = AddRoundKey(buffer, RoundKey[0]);
+                buffer = buffer.Add(RoundKey[0]);
                 for (int round = 1; round < NumberOfRounds(); round++)
                     buffer = EncryptRound(buffer, RoundKey[round]);
                 buffer = FinalEncrypt(buffer, RoundKey[NumberOfRounds()]);
@@ -439,7 +427,7 @@ namespace Aes.AF
                 byte[] output = new byte[input.Length];
                 output = InverseShiftRows(input);
                 output = ByteInverseSubstitution(output);
-                output = AddRoundKey(output, key);
+                output = output.Add(key);
                 return output;
             }
 
@@ -448,7 +436,7 @@ namespace Aes.AF
                 byte[] output = new byte[input.Length];
                 output = InverseShiftRows(input);
                 output = ByteInverseSubstitution(output);
-                output = AddRoundKey(output, key);
+                output = output.Add(key);
                 output = InverseMixColumns(output);
                 return output;
             }
@@ -458,7 +446,7 @@ namespace Aes.AF
                 byte[] buffer = new byte[InputBlockSize];
                 Array.Copy(inputBuffer, inputOffset, buffer, 0, InputBlockSize);
 
-                buffer = AddRoundKey(buffer, RoundKey[NumberOfRounds()]);
+                buffer = buffer.Add(RoundKey[NumberOfRounds()]);
                 for (int round = NumberOfRounds() - 1; round > 0; round--)
                     buffer = DecryptRound(buffer, RoundKey[round]);
                 buffer = FinalDecrypt(buffer, RoundKey[0]);

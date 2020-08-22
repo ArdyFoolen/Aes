@@ -51,7 +51,7 @@ namespace Aes.AF
                 {
                     byte[] buffer = new byte[InputBlockSize];
                     Array.Copy(inputBuffer, inputOffset + i, buffer, 0, InputBlockSize);
-                    buffer = this.Aes.AddRoundKey(buffer, this.Aes.IV);
+                    buffer = buffer.Add(this.Aes.IV);
                     this.Aes.Encrypt(buffer, 0, outputBuffer, outputOffset + i);
                     Array.Copy(outputBuffer, outputOffset + i, this.Aes.IV, 0, InputBlockSize);
                 }
@@ -70,7 +70,7 @@ namespace Aes.AF
                     byte[] buffer = new byte[InputBlockSize];
                     byte[] output = new byte[OutputBlockSize];
                     Array.Copy(inputBuffer, inputOffset, buffer, 0, InputBlockSize);
-                    buffer = this.Aes.AddRoundKey(buffer, this.Aes.IV);
+                    buffer = buffer.Add(this.Aes.IV);
                     this.Aes.Encrypt(buffer, 0, output, 0);
                     return output;
                 }

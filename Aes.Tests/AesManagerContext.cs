@@ -36,7 +36,7 @@ namespace Aes.Tests
         public int ExecutingRound { get; private set; } = 0;
         public byte[] AddRoundKey(byte[] input, byte[] key)
         {
-            byte[] result = aes.AddRoundKey(input, key);
+            byte[] result = input.Add(key);
             return result;
         }
     }

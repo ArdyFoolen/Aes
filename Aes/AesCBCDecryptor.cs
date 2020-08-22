@@ -73,14 +73,14 @@ namespace Aes.AF
                         this.Aes.Decrypt(inputBuffer, inputOffset + i, lastBuffer, 0);
                         byte[] buffer = new byte[OutputBlockSize];
                         Array.Copy(lastBuffer, 0, buffer, 0, OutputBlockSize);
-                        lastBuffer = this.Aes.AddRoundKey(buffer, this.Aes.IV);
+                        lastBuffer = buffer.Add(this.Aes.IV);
                     }
                     else
                     {
                         this.Aes.Decrypt(inputBuffer, inputOffset + i, outputBuffer, outputOffset);
                         byte[] buffer = new byte[OutputBlockSize];
                         Array.Copy(outputBuffer, outputOffset, buffer, 0, OutputBlockSize);
-                        buffer = this.Aes.AddRoundKey(buffer, this.Aes.IV);
+                        buffer = buffer.Add(this.Aes.IV);
                         Array.Copy(buffer, 0, outputBuffer, outputOffset, OutputBlockSize);
                     }
                     Array.Copy(inputBuffer, inputOffset + i, this.Aes.IV, 0, OutputBlockSize);
