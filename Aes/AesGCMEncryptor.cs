@@ -106,18 +106,17 @@ namespace Aes.AF
             {
                 ByteTag = new byte[OutputBlockSize];
                 int blocks = (AdditionalData.Length % 16) == 0 ? AdditionalData.Length / 16 : AdditionalData.Length / 16 + 1;
-                byte[][] x = new byte[blocks + 1][];
-                x[0] = new byte[OutputBlockSize];
+                byte[] temp = new byte[OutputBlockSize];
 
                 for (int i = 1; i <= blocks; i++)
                 {
                     byte[] aadBlock = new byte[OutputBlockSize];
                     int length = AdditionalData.Length - ((i - 1) * 16) > 16 ? 16 : AdditionalData.Length - ((i - 1) * 16);
                     Array.Copy(AdditionalData, (i - 1) * 16, aadBlock, 0, length);
-                    x[i] = GaloisMultiplication.GMul128(x[i - 1].Add(aadBlock), H);
+                    temp = GaloisMultiplication.GMul128(temp.Add(aadBlock), H);
                 }
 
-                Array.Copy(x[x.Length - 1], 0, ByteTag, 0, OutputBlockSize);
+                Array.Copy(temp, 0, ByteTag, 0, OutputBlockSize);
             }
 
             private void CreateCounter()
@@ -157,8 +156,7 @@ namespace Aes.AF
             {
                 int blocks = IV.Length / 16;
                 blocks += IV.Length % 16 == 0 ? 1 : 2;
-                byte[][] x = new byte[blocks][];
-                x[0] = new byte[OutputBlockSize];
+                byte[] temp = new byte[OutputBlockSize];
 
                 for (int i = 1; i < blocks; i++)
                 {
@@ -166,10 +164,10 @@ namespace Aes.AF
                     int cpLength = IV.Length - ((i - 1) * 16);
                     cpLength = cpLength > 16 ? 16 : cpLength;
                     Array.Copy(IV, (i - 1) * 16, IVBlock, 0, cpLength);
-                    x[i] = GaloisMultiplication.GMul128(x[i - 1].Add(IVBlock), H);
+                    temp = GaloisMultiplication.GMul128(temp.Add(IVBlock), H);
                 }
 
-                return GaloisMultiplication.GMul128(x[x.Length - 1].Add(ConvertToByteArray(IV.Length * 8)), H);
+                return GaloisMultiplication.GMul128(temp.Add(ConvertToByteArray(IV.Length * 8)), H);
             }
 
             private byte[] ConvertToByteArray(int length)
