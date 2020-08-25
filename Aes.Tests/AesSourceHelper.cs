@@ -336,6 +336,20 @@ namespace Aes.Tests
             return authenticatedTransform.Tag;
         }
 
+        /// <summary>
+        /// If decryption fails it will throw an exception
+        /// The returned Tag is not the tag generated during decryption, it is the one passed to the factorymethod
+        /// It is returned because the encryption/decryption tests are the same method signatures
+        /// </summary>
+        /// <param name="aesManager"></param>
+        /// <param name="key"></param>
+        /// <param name="IV"></param>
+        /// <param name="aad"></param>
+        /// <param name="tag"></param>
+        /// <param name="keySize"></param>
+        /// <param name="outStream"></param>
+        /// <param name="inStream"></param>
+        /// <returns></returns>
         private static string DecryptGCM(AF.AesManager aesManager, byte[] key, byte[] IV, byte[] aad, string tag, AesKeySize keySize, Stream outStream, Stream inStream)
         {
             IAuthenticatedCryptoTransform authenticatedTransform;
