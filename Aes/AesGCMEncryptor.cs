@@ -10,14 +10,20 @@ namespace Aes.AF
 {
     public partial class AesManager
     {
-        public IAuthenticatedCryptoTransform CreateEncryptor(byte[] key, byte[] IV, byte[] additionalData, AesKeySize keySize = AesKeySize.Aes128)
+        public IAuthenticatedCryptoTransform CreateGcmEncryptor(byte[] key, byte[] IV, byte[] additionalData, AesKeySize keySize = AesKeySize.Aes128)
+            => CreateEncryptor(key, IV, additionalData, keySize);
+
+        public IAuthenticatedCryptoTransform CreateGcmDecryptor(byte[] key, byte[] IV, byte[] additionalData, string tag, AesKeySize keySize = AesKeySize.Aes128)
+            => CreateDecryptor(key, IV, additionalData, tag, keySize);
+
+        private IAuthenticatedCryptoTransform CreateEncryptor(byte[] key, byte[] IV, byte[] additionalData, AesKeySize keySize = AesKeySize.Aes128)
         {
             Aes aes = CreateAesGcm(key, IV, keySize);
 
             return new AesGCMEncryptor(aes, additionalData);
         }
 
-        public IAuthenticatedCryptoTransform CreateDecryptor(byte[] key, byte[] IV, byte[] additionalData, string tag, AesKeySize keySize = AesKeySize.Aes128)
+        private IAuthenticatedCryptoTransform CreateDecryptor(byte[] key, byte[] IV, byte[] additionalData, string tag, AesKeySize keySize = AesKeySize.Aes128)
         {
             Aes aes = CreateAesGcm(key, IV, keySize);
 

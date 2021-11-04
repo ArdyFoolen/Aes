@@ -9,7 +9,10 @@ namespace Aes.AF
 {
     public partial class AesManager
     {
-        public ICryptoTransform CreateDecryptor(byte[] key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
+        public ICryptoTransform CreateEcbDecryptor(byte[] key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
+            => CreateDecryptor(key, keySize, paddingMode);
+
+        private ICryptoTransform CreateDecryptor(byte[] key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
         {
             Aes aes = new Aes(key, keySize);
             aes.PaddingMode = paddingMode;
