@@ -9,6 +9,9 @@ namespace Aes.AF
 {
     public partial class AesManager
     {
+        public ICryptoTransform CreateEcbEncryptor(string key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
+            => CreateEcbEncryptor(key.GetKey(keySize), keySize, paddingMode);
+
         public ICryptoTransform CreateEcbEncryptor(byte[] key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
             => CreateEncryptor(key, keySize, paddingMode);
 

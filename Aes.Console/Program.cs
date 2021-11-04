@@ -18,7 +18,7 @@ namespace Aes.App
             // ECB encryption
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("EncryptedFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(writer, aesManager.CreateEcbEncryptor(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192), CryptoStreamMode.Write))
+            using (var encryptStream = new CryptoStream(writer, aesManager.CreateEcbEncryptor("Thats my Kung Fu", AesKeySize.Aes192), CryptoStreamMode.Write))
             {
                 encryptStream.WriteFrom(stream);
             }
@@ -26,7 +26,7 @@ namespace Aes.App
             // ECB decryption
             using (Stream stream = new FileStream("EncryptedFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("DecryptedFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(stream, aesManager.CreateEcbDecryptor(GetKey("Thats my Kung Fu", 24), AesKeySize.Aes192), CryptoStreamMode.Read))
+            using (var encryptStream = new CryptoStream(stream, aesManager.CreateEcbDecryptor("Thats my Kung Fu", AesKeySize.Aes192), CryptoStreamMode.Read))
             {
                 encryptStream.ReadInto(writer);
             }
@@ -35,7 +35,7 @@ namespace Aes.App
             byte[] IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x00 };
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("EncryptedCBCFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(writer, aesManager.CreateCbcEncryptor(GetKey("Thats my Kung Fu", 16), IV, AesKeySize.Aes128), CryptoStreamMode.Write))
+            using (var encryptStream = new CryptoStream(writer, aesManager.CreateCbcEncryptor("Thats my Kung Fu", IV, AesKeySize.Aes128), CryptoStreamMode.Write))
             {
                 encryptStream.WriteFrom(stream);
             }
@@ -44,7 +44,7 @@ namespace Aes.App
             IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x00 };
             using (Stream stream = new FileStream("EncryptedCBCFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("DecryptedCBCFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(stream, aesManager.CreateCbcDecryptor(GetKey("Thats my Kung Fu", 16), IV, AesKeySize.Aes128), CryptoStreamMode.Read))
+            using (var encryptStream = new CryptoStream(stream, aesManager.CreateCbcDecryptor("Thats my Kung Fu", IV, AesKeySize.Aes128), CryptoStreamMode.Read))
             {
                 encryptStream.ReadInto(writer);
             }
@@ -53,7 +53,7 @@ namespace Aes.App
             IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x0b, 0x0c };
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("EncryptedCTRFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(writer, aesManager.CreateCtrEncryptor(GetKey("Thats my Kung Fu", 16), IV, AesKeySize.Aes128), CryptoStreamMode.Write))
+            using (var encryptStream = new CryptoStream(writer, aesManager.CreateCtrEncryptor("Thats my Kung Fu", IV, AesKeySize.Aes128), CryptoStreamMode.Write))
             {
                 encryptStream.WriteFrom(stream);
             }
@@ -62,7 +62,7 @@ namespace Aes.App
             IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x0b, 0x0c };
             using (Stream stream = new FileStream("EncryptedCTRFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("DecryptedCTRFile.txt", FileMode.Create))
-            using (var encryptStream = new CryptoStream(stream, aesManager.CreateCtrDecryptor(GetKey("Thats my Kung Fu", 16), IV, AesKeySize.Aes128), CryptoStreamMode.Read))
+            using (var encryptStream = new CryptoStream(stream, aesManager.CreateCtrDecryptor("Thats my Kung Fu", IV, AesKeySize.Aes128), CryptoStreamMode.Read))
             {
                 encryptStream.ReadInto(writer);
             }
@@ -70,11 +70,11 @@ namespace Aes.App
             // GCM encryption
             IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x0b, 0x0c };
             string ad = "ThisIsMyAuthenticatedDataWhatEverIWantAndHowLongIWant";
-            byte[] aad = GetKey(ad, ad.Length);
+            byte[] aad = KeyHelper.GetKey(ad, ad.Length);
             IAuthenticatedCryptoTransform transform;
             using (Stream stream = new FileStream("UnencryptedFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("EncryptedGCMFile.txt", FileMode.Create))
-            using (transform = aesManager.CreateGcmEncryptor(GetKey("Thats my Kung Fu", 16), IV, aad, AesKeySize.Aes128))
+            using (transform = aesManager.CreateGcmEncryptor("Thats my Kung Fu", IV, aad, AesKeySize.Aes128))
             using (var encryptStream = new CryptoStream(writer, transform, CryptoStreamMode.Write))
             {
                 encryptStream.WriteFrom(stream);
@@ -84,25 +84,16 @@ namespace Aes.App
             // GCM decryption
             IV = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x01, 0x0b, 0x0c };
             ad = "ThisIsMyAuthenticatedDataWhatEverIWantAndHowLongIWant";
-            aad = GetKey(ad, ad.Length);
+            aad = KeyHelper.GetKey(ad, ad.Length);
             using (Stream stream = new FileStream("EncryptedGCMFile.txt", FileMode.Open))
             using (FileStream writer = new FileStream("DecryptedGCMFile.txt", FileMode.Create))
-            using (transform = aesManager.CreateGcmDecryptor(GetKey("Thats my Kung Fu", 16), IV, aad, tag, AesKeySize.Aes128))
+            using (transform = aesManager.CreateGcmDecryptor("Thats my Kung Fu", IV, aad, tag, AesKeySize.Aes128))
             using (var encryptStream = new CryptoStream(stream, transform, CryptoStreamMode.Read))
             {
                 encryptStream.ReadInto(writer);
             }
 
             Console.ReadKey();
-        }
-
-        private static byte[] GetKey(string key, int keySize)
-        {
-            string keyFmt = string.Format("{{0, -{0}}}", keySize);
-            if (keySize < key.Length)
-                return Encoding.ASCII.GetBytes(string.Format(keyFmt, key.Substring(0, keySize)));
-            else
-                return Encoding.ASCII.GetBytes(string.Format(keyFmt, key));
         }
     }
 }

@@ -9,8 +9,14 @@ namespace Aes.AF
 {
     public partial class AesManager
     {
+        public ICryptoTransform CreateCbcEncryptor(string key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
+            => CreateCbcEncryptor(key.GetKey(keySize), IV, keySize, paddingMode);
+
         public ICryptoTransform CreateCbcEncryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
             => CreateEncryptor(key, IV, EncryptModeEnum.CBC, keySize, paddingMode);
+
+        public ICryptoTransform CreateCtrEncryptor(string key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
+            => CreateCtrEncryptor(key.GetKey(keySize), IV, keySize, paddingMode);
 
         public ICryptoTransform CreateCtrEncryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
             => CreateEncryptor(key, IV, EncryptModeEnum.CTR, keySize, paddingMode);
