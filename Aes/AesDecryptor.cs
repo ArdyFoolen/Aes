@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using Aes.AF.Extensions;
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace Aes.AF
 
         private ICryptoTransform CreateDecryptor(byte[] key, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
         {
-            Aes aes = new Aes(key, keySize);
+            Aes aes = new Aes(key.Copy(), keySize);
             aes.PaddingMode = paddingMode;
             aes.RemovePaddingFunction = PaddingFactory.GetRemovePaddingFunction(paddingMode);
             aes.InitializeRoundKey();

@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using Aes.AF.Extensions;
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -28,7 +29,7 @@ namespace Aes.AF
                 byte[] newIV = new byte[16];
                 Array.Copy(IV, 0, newIV, 0, IV.Length);
 
-                Aes aes = new Aes(key, newIV, keySize);
+                Aes aes = new Aes(key.Copy(), newIV, keySize);
                 aes.PaddingMode = PaddingMode.None;
                 aes.EncryptMode = EncryptModeEnum.CTR;
                 aes.InitializeRoundKey();

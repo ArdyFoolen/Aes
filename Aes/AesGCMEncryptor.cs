@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Security.Cryptography;
 using static Aes.AF.ByteManipulation;
+using Aes.AF.Extensions;
 
 namespace Aes.AF
 {
@@ -41,7 +42,7 @@ namespace Aes.AF
             byte[] newIV = new byte[IV.Length];
             Array.Copy(IV, 0, newIV, 0, IV.Length);
 
-            Aes aes = new Aes(key, newIV, keySize);
+            Aes aes = new Aes(key.Copy(), newIV, keySize);
             aes.PaddingMode = PaddingMode.None;
             aes.EncryptMode = EncryptModeEnum.GCM;
             aes.InitializeRoundKey();

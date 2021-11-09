@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using Aes.AF.Extensions;
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -43,7 +44,7 @@ namespace Aes.AF
 
             public static ICryptoTransform CreateDecryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, PaddingMode paddingMode = PaddingMode.PKCS7)
             {
-                Aes aes = new Aes(key, IV, keySize);
+                Aes aes = new Aes(key.Copy(), IV.Copy(), keySize);
                 aes.PaddingMode = paddingMode;
                 aes.RemovePaddingFunction = PaddingFactory.GetRemovePaddingFunction(paddingMode);
                 aes.EncryptMode = EncryptModeEnum.CBC;

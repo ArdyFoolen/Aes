@@ -1,0 +1,27 @@
+﻿{
+  "AesSettings": [
+    {
+      "Mode": "ECB",
+      "Key": "Thats my Kung Fu",
+      "KeySize": "Aes192"
+    },
+    {
+      "Mode": "CBC",
+      "Key": "Thats my Kung Fu",
+      "IV": "AQIDBAUGBwgJAQsMDQ4PAA==",
+      "KeySize": "Aes128"
+    },
+    {
+      "Mode": "CTR",
+      "Key": "Thats my Kung Fu",
+      "IV": "AQIDBAUGBwgJAQsM",
+      "KeySize": "Aes256"
+    },
+    {
+      "Mode": "GCM",
+      "Key": "Thats my Kung Fu",
+      "IV": "AQIDBAUGBwgJAQsM",
+      "KeySize": "Aes256"
+    }
+  ]
+}
