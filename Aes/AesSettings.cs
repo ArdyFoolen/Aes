@@ -31,7 +31,7 @@ namespace Aes.AF
 
         public static IEnumerable<AesSettings> GetEnumerator()
         {
-            var builder = new ConfigurationBuilder().AddJsonFile("AesSettings.json", optional: false, reloadOnChange: true);
+            var builder = new ConfigurationBuilder().AddJsonFile("Configs\\AesSettings.json", optional: false, reloadOnChange: true);
             IConfiguration configuration = builder.Build();
 
             return configuration
