@@ -47,18 +47,15 @@ namespace Aes.AF
 
             public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
             {
-                if (this.Aes.PaddingFunction != null)
-                    for (int i = inputCount; i < InputBlockSize; i++)
-                        inputBuffer[i] = this.Aes.PaddingFunction(InputBlockSize - inputCount, i - inputCount);
-
-                if (this.Aes.PaddingFunction != null)
-                {
-                    byte[] buffer = new byte[OutputBlockSize];
-                    this.Aes.Encrypt(inputBuffer, inputOffset, buffer, 0);
-                    return buffer;
-                }
-                else
+                if (this.Aes.PaddingFunction == null)
                     return new byte[0];
+
+                for (int i = inputCount; i < InputBlockSize; i++)
+                    inputBuffer[i] = this.Aes.PaddingFunction(InputBlockSize - inputCount, i - inputCount);
+
+                byte[] buffer = new byte[OutputBlockSize];
+                this.Aes.Encrypt(inputBuffer, inputOffset, buffer, 0);
+                return buffer;
             }
 
             public bool CanReuseTransform
