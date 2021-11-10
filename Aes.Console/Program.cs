@@ -14,8 +14,7 @@ namespace Aes.App
     {
         static void Main(string[] args)
         {
-            var settings = AesSettings.GetEnumerator();
-            AF.AesManager aesManager = new AF.AesManager();
+            Environment.SetEnvironmentVariable(AesSettings.AesSettingsEnvPath, "Configs\\AesSettings.json");
             IEncryptorFactory encryptorFactory = new EncryptorFactory();
 
             // ECB encryption

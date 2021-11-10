@@ -3,13 +3,15 @@
     {
       "Mode": "ECB",
       "Key": "Thats my Kung Fu",
-      "KeySize": "Aes192"
+      "KeySize": "Aes192",
+      "PaddingMode": "PKCS7"
     },
     {
       "Mode": "CBC",
       "Key": "Thats my Kung Fu",
       "IV": "AQIDBAUGBwgJAQsMDQ4PAA==",
-      "KeySize": "Aes128"
+      "KeySize": "Aes128",
+      "PaddingMode": "PKCS7"
     },
     {
       "Mode": "CTR",

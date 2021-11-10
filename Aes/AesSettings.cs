@@ -3,12 +3,14 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Aes.AF
 {
     public class AesSettings
     {
+        public const string AesSettingsEnvPath = "AesSettingsEnvPath";
         public EncryptModeEnum Mode { get; private set; } = EncryptModeEnum.ECB;
         public string Key { get; private set; } = "";
 
@@ -28,10 +30,11 @@ namespace Aes.AF
             }
         }
         public AesKeySize KeySize { get; private set; } = AesKeySize.Aes128;
+        public PaddingMode PaddingMode { get; private set; } = PaddingMode.PKCS7;
 
         public static IEnumerable<AesSettings> GetEnumerator()
         {
-            var builder = new ConfigurationBuilder().AddJsonFile("Configs\\AesSettings.json", optional: false, reloadOnChange: true);
+            var builder = new ConfigurationBuilder().AddJsonFile(GetAesSettingsEnvPath, optional: false, reloadOnChange: true);
             IConfiguration configuration = builder.Build();
 
             return configuration
@@ -61,7 +64,8 @@ namespace Aes.AF
             {
                 Mode = section["Mode"].ToEnum<EncryptModeEnum>(),
                 Key = section["Key"],
-                KeySize = section["KeySize"].ToEnum<AesKeySize>()
+                KeySize = section["KeySize"].ToEnum<AesKeySize>(),
+                PaddingMode = section["PaddingMode"] != null ? section["PaddingMode"].ToEnum<PaddingMode>() : PaddingMode.PKCS7
             };
 
         private static AesSettings CreateDefault(IConfigurationSection section)
@@ -70,7 +74,10 @@ namespace Aes.AF
                 Mode = section["Mode"].ToEnum<EncryptModeEnum>(),
                 Key = section["Key"],
                 IV = Convert.FromBase64String(section["IV"]),
-                KeySize = section["KeySize"].ToEnum<AesKeySize>()
+                KeySize = section["KeySize"].ToEnum<AesKeySize>(),
+                PaddingMode = section["PaddingMode"] != null ? section["PaddingMode"].ToEnum<PaddingMode>() : PaddingMode.PKCS7
             };
+
+        private static string GetAesSettingsEnvPath { get => Environment.GetEnvironmentVariable(AesSettingsEnvPath) ?? "Configs\\AesSettings.json"; }
     }
 }
