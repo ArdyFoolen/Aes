@@ -68,7 +68,7 @@ namespace Aes.App
             if (!unencrypted.Equals(decrypted))
                 throw new Exception("Encrypt and Decrypt not succeeded");
 
-            // Netwoeking example
+            // Networking example
             GcmEncryptorFactory gcmFactory = factory as GcmEncryptorFactory;
             string gcmEncrypted = factory.Encrypt(unencrypted);
             string gcmTag = gcmFactory.Tag;
