@@ -14,6 +14,8 @@ namespace Aes.App
     {
         static void Main(string[] args)
         {
+            string unencrypted = "This is an unencrypted text, to be encrypted by AES";
+
             Environment.SetEnvironmentVariable(AesSettings.AesSettingsEnvPath, "Configs\\AesSettings.json");
             IEncryptorFactory encryptorFactory = new EncryptorFactory();
 
@@ -24,6 +26,10 @@ namespace Aes.App
             // ECB decryption
             Decrypt("EncryptedFile.txt", "DecryptedFile.txt", factory);
 
+            var decrypted = factory.Decrypt(factory.Encrypt(unencrypted));
+            if (!unencrypted.Equals(decrypted))
+                throw new Exception("Encrypt and Decrypt not succeeded");
+
             // CBC encryption
             factory = encryptorFactory.CreateFactory(EncryptModeEnum.CBC);
             Encrypt("UnencryptedFile.txt", "EncryptedCBCFile.txt", factory);
@@ -31,12 +37,20 @@ namespace Aes.App
             // CBC decryption
             Decrypt("EncryptedCBCFile.txt", "DecryptedCBCFile.txt", factory);
 
+            decrypted = factory.Decrypt(factory.Encrypt(unencrypted));
+            if (!unencrypted.Equals(decrypted))
+                throw new Exception("Encrypt and Decrypt not succeeded");
+
             // CTR encryption
             factory = encryptorFactory.CreateFactory(EncryptModeEnum.CTR);
             Encrypt("UnencryptedFile.txt", "EncryptedCTRFile.txt", factory);
 
             // CTR decryption
             Decrypt("EncryptedCTRFile.txt", "DecryptedCTRFile.txt", factory);
+
+            decrypted = factory.Decrypt(factory.Encrypt(unencrypted));
+            if (!unencrypted.Equals(decrypted))
+                throw new Exception("Encrypt and Decrypt not succeeded");
 
             // GCM encryption
             string ad = "ThisIsMyAuthenticatedDataWhatEverIWantAndHowLongIWant";
@@ -46,6 +60,10 @@ namespace Aes.App
 
             // GCM decryption
             Decrypt("EncryptedGCMFile.txt", "DecryptedGCMFile.txt", factory);
+
+            decrypted = factory.Decrypt(factory.Encrypt(unencrypted));
+            if (!unencrypted.Equals(decrypted))
+                throw new Exception("Encrypt and Decrypt not succeeded");
         }
 
         private static void Encrypt(string sourceFile, string targetFile, IAesFactory factory)
