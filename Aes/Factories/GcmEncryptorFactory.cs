@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Aes.AF.Factories
 {
-    public class GcmEncryptorFactory : AesFactory
+    public class GcmEncryptorFactory : EncryptorFactory
     {
         private AesManager aesManager = new AesManager();
         private IAuthenticatedCryptoTransform transform;

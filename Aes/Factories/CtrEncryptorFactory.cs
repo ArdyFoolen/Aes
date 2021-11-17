@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Aes.AF.Factories
 {
-    public class CtrEncryptorFactory : AesFactory
+    public class CtrEncryptorFactory : EncryptorFactory
     {
         private AesManager aesManager = new AesManager();
         private AesSettings Settings { get; set; }

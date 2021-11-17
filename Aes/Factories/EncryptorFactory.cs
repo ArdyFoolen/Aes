@@ -1,29 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+using static Aes.AF.Extensions.StreamExtensions;
+using static Aes.AF.Extensions.UsingExtensions;
 
 namespace Aes.AF.Factories
 {
-    public class EncryptorFactory : IEncryptorFactory
+    public abstract class EncryptorFactory : IEncryptorFactory
     {
-        public IAesFactory CreateFactory(EncryptModeEnum mode, byte[] aad = null)
-        {
-            var settings = AesSettings.GetEnumerator();
+        public abstract ICryptoTransform CreateDecryptor();
 
-            switch(mode)
-            {
-                case EncryptModeEnum.ECB:
-                    return new EcbEncryptorFactory(settings.FirstOrDefault(s => EncryptModeEnum.ECB.Equals(s.Mode)));
-                case EncryptModeEnum.CBC:
-                    return new CbcEncryptorFactory(settings.FirstOrDefault(s => EncryptModeEnum.CBC.Equals(s.Mode)));
-                case EncryptModeEnum.CTR:
-                    return new CtrEncryptorFactory(settings.FirstOrDefault(s => EncryptModeEnum.CTR.Equals(s.Mode)));
-                case EncryptModeEnum.GCM:
-                    return new GcmEncryptorFactory(settings.FirstOrDefault(s => EncryptModeEnum.GCM.Equals(s.Mode)), aad);
-                default:
-                    throw new ArgumentOutOfRangeException($"Invalid Mode {mode}");
-            }
-        }
+        public abstract ICryptoTransform CreateEncryptor();
+
+        public string Encrypt(string source)
+            => MemoryStream(source)
+                .Using(m => MemoryStream()
+                .Using(w =>
+                {
+                    CryptoStream(w, CreateEncryptor(), CryptoStreamMode.Write).Using(c => c.WriteFrom(m));
+                    w.Position = 0;
+                    return StreamReader(w).Using(r => r.ReadToEnd());
+                }));
+
+        public string Decrypt(string source)
+            => MemoryStream(source)
+                .Using(m => MemoryStream()
+                .Using(w =>
+                {
+                    CryptoStream(m, CreateDecryptor(), CryptoStreamMode.Read).Using(c => c.ReadInto(w));
+                    w.Position = 0;
+                    return StreamReader(w).Using(r => r.ReadToEnd());
+                }));
     }
 }

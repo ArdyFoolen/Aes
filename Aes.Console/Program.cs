@@ -17,10 +17,10 @@ namespace Aes.App
             string unencrypted = "This is an unencrypted text, to be encrypted by AES";
 
             Environment.SetEnvironmentVariable(AesSettings.AesSettingsEnvPath, "Configs\\AesSettings.json");
-            IEncryptorFactory encryptorFactory = new EncryptorFactory();
+            IAesFactory aesFactory = new AesFactory();
 
             // ECB encryption
-            IAesFactory factory = encryptorFactory.CreateFactory(EncryptModeEnum.ECB);
+            IEncryptorFactory factory = aesFactory.CreateFactory(EncryptModeEnum.ECB);
             Encrypt("UnencryptedFile.txt", "EncryptedFile.txt", factory);
 
             // ECB decryption
@@ -31,7 +31,7 @@ namespace Aes.App
                 throw new Exception("Encrypt and Decrypt not succeeded");
 
             // CBC encryption
-            factory = encryptorFactory.CreateFactory(EncryptModeEnum.CBC);
+            factory = aesFactory.CreateFactory(EncryptModeEnum.CBC);
             Encrypt("UnencryptedFile.txt", "EncryptedCBCFile.txt", factory);
 
             // CBC decryption
@@ -42,7 +42,7 @@ namespace Aes.App
                 throw new Exception("Encrypt and Decrypt not succeeded");
 
             // CTR encryption
-            factory = encryptorFactory.CreateFactory(EncryptModeEnum.CTR);
+            factory = aesFactory.CreateFactory(EncryptModeEnum.CTR);
             Encrypt("UnencryptedFile.txt", "EncryptedCTRFile.txt", factory);
 
             // CTR decryption
@@ -55,7 +55,7 @@ namespace Aes.App
             // GCM encryption
             string ad = "ThisIsMyAuthenticatedDataWhatEverIWantAndHowLongIWant";
             byte[] aad = KeyHelper.GetKey(ad, ad.Length);
-            factory = encryptorFactory.CreateFactory(EncryptModeEnum.GCM, aad);
+            factory = aesFactory.CreateFactory(EncryptModeEnum.GCM, aad);
             Encrypt("UnencryptedFile.txt", "EncryptedGCMFile.txt", factory);
 
             // GCM decryption
@@ -66,7 +66,7 @@ namespace Aes.App
                 throw new Exception("Encrypt and Decrypt not succeeded");
         }
 
-        private static void Encrypt(string sourceFile, string targetFile, IAesFactory factory)
+        private static void Encrypt(string sourceFile, string targetFile, IEncryptorFactory factory)
         {
             using (Stream stream = new FileStream(sourceFile, FileMode.Open))
             using (Stream writer = new FileStream(targetFile, FileMode.Create))
@@ -76,7 +76,7 @@ namespace Aes.App
             }
         }
 
-        private static void Decrypt(string sourceFile, string targetFile, IAesFactory factory)
+        private static void Decrypt(string sourceFile, string targetFile, IEncryptorFactory factory)
         {
             using (Stream stream = new FileStream(sourceFile, FileMode.Open))
             using (Stream writer = new FileStream(targetFile, FileMode.Create))
