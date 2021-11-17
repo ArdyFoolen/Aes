@@ -8,10 +8,12 @@ namespace Aes.AF.Factories
     public class GcmEncryptorFactory : EncryptorFactory
     {
         private AesManager aesManager = new AesManager();
-        private IAuthenticatedCryptoTransform transform;
+        public IAuthenticatedCryptoTransform transform;
         private AesSettings Settings { get; set; }
         private byte[] Aad { get; set; }
-        public string Tag { get; set; } = null;
+
+        private string tag = null;
+        public string Tag { get { return tag ?? transform?.Tag ?? string.Empty; } set { tag = value; } }
         public GcmEncryptorFactory(AesSettings settings, byte[] aad)
         {
             Settings = settings;
@@ -25,6 +27,6 @@ namespace Aes.AF.Factories
         }
 
         public override ICryptoTransform CreateDecryptor()
-            => aesManager.CreateGcmDecryptor(Settings.Key, Settings.IV, Aad, Tag ?? transform?.Tag ?? string.Empty, Settings.KeySize);
+            => aesManager.CreateGcmDecryptor(Settings.Key, Settings.IV, Aad, Tag, Settings.KeySize);
     }
 }

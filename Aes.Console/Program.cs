@@ -61,7 +61,21 @@ namespace Aes.App
             // GCM decryption
             Decrypt("EncryptedGCMFile.txt", "DecryptedGCMFile.txt", factory);
 
+            // Cannot use the following way in a networking environment
+            // When I encrypt I save the generated Tag in the factory
+            // The decryption process then uses this Tag to authenticate the decryption
             decrypted = factory.Decrypt(factory.Encrypt(unencrypted));
+            if (!unencrypted.Equals(decrypted))
+                throw new Exception("Encrypt and Decrypt not succeeded");
+
+            // Netwoeking example
+            GcmEncryptorFactory gcmFactory = factory as GcmEncryptorFactory;
+            string gcmEncrypted = factory.Encrypt(unencrypted);
+            string gcmTag = gcmFactory.Tag;
+
+            GcmEncryptorFactory remoteGcmFactory = aesFactory.CreateFactory(EncryptModeEnum.GCM, aad) as GcmEncryptorFactory;
+            remoteGcmFactory.Tag = gcmTag;
+            decrypted = remoteGcmFactory.Decrypt(gcmEncrypted);
             if (!unencrypted.Equals(decrypted))
                 throw new Exception("Encrypt and Decrypt not succeeded");
         }
