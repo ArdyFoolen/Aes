@@ -1,20 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="PaddingFactory - Copy.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="UnencryptedFile.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Documentation\" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />

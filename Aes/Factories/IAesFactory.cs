@@ -9,5 +9,7 @@ namespace Aes.AF.Factories
     {
         ICryptoTransform CreateEncryptor();
         ICryptoTransform CreateDecryptor();
+        string Encrypt(string source);
+        string Decrypt(string source);
     }
 }

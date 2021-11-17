@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Aes.AF.Factories
 {
-    public class CtrEncryptorFactory : IAesFactory
+    public class CtrEncryptorFactory : AesFactory
     {
         private AesManager aesManager = new AesManager();
         private AesSettings Settings { get; set; }
@@ -15,10 +15,10 @@ namespace Aes.AF.Factories
             Settings = settings;
         }
 
-        public ICryptoTransform CreateEncryptor()
+        public override ICryptoTransform CreateEncryptor()
             => aesManager.CreateCtrEncryptor(Settings.Key, Settings.IV, Settings.KeySize);
 
-        public ICryptoTransform CreateDecryptor()
+        public override ICryptoTransform CreateDecryptor()
             => aesManager.CreateCtrDecryptor(Settings.Key, Settings.IV, Settings.KeySize);
     }
 }

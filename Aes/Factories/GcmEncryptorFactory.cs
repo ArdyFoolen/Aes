@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Aes.AF.Factories
 {
-    public class GcmEncryptorFactory : IAesFactory
+    public class GcmEncryptorFactory : AesFactory
     {
         private AesManager aesManager = new AesManager();
         private IAuthenticatedCryptoTransform transform;
@@ -18,13 +18,13 @@ namespace Aes.AF.Factories
             Aad = aad;
         }
 
-        public ICryptoTransform CreateEncryptor()
+        public override ICryptoTransform CreateEncryptor()
         {
             transform = aesManager.CreateGcmEncryptor(Settings.Key, Settings.IV, Aad, Settings.KeySize);
             return transform;
         }
 
-        public ICryptoTransform CreateDecryptor()
+        public override ICryptoTransform CreateDecryptor()
             => aesManager.CreateGcmDecryptor(Settings.Key, Settings.IV, Aad, Tag ?? transform?.Tag ?? string.Empty, Settings.KeySize);
     }
 }

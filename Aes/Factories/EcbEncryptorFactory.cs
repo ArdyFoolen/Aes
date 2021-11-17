@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Aes.AF.Factories
 {
-    public class EcbEncryptorFactory : IAesFactory
+    public class EcbEncryptorFactory : AesFactory
     {
         private AesManager aesManager = new AesManager();
         private AesSettings Settings { get; set; }
@@ -15,10 +15,10 @@ namespace Aes.AF.Factories
             Settings = settings;
         }
 
-        public ICryptoTransform CreateEncryptor()
+        public override ICryptoTransform CreateEncryptor()
             => aesManager.CreateEcbEncryptor(Settings.Key, Settings.KeySize);
 
-        public ICryptoTransform CreateDecryptor()
+        public override ICryptoTransform CreateDecryptor()
             => aesManager.CreateEcbDecryptor(Settings.Key, Settings.KeySize);
     }
 }
