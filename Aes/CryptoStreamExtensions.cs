@@ -27,7 +27,7 @@ namespace Aes.AF
             {
                 bytesRead = crypto.Read(ciphertext, 0, ciphertext.Length);
                 writer.Write(ciphertext, 0, bytesRead);
-            } while (bytesRead == 0x400);
+            } while (bytesRead > 0x0);
         }
     }
 }

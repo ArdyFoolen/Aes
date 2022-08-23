@@ -70,7 +70,7 @@ namespace Aes.AF
 
                 if (isFirstTransfer)
                 {
-                    Array.Copy(outputBuffer, outputBuffer.Length - OutputBlockSize, lastBuffer, 0, OutputBlockSize);
+                    Array.Copy(outputBuffer, outputOffset - OutputBlockSize, lastBuffer, 0, OutputBlockSize);
                     isFirstTransfer = false;
                 }
 
