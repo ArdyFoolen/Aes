@@ -8,10 +8,11 @@
     },
     {
       "Mode": "CBC",
-      "Key": "Thats my Kung Fu",
-      "IV": "AQIDBAUGBwgJAQsMDQ4PAA==",
-      "KeySize": "Aes128",
-      "PaddingMode": "PKCS7"
+      "Key": "XGkx90980CnpWKAkveG0lCAVD66qQNdUbSz6L29V+fQ=",
+      "IV": "GnPEZNG/PiwNxx02DKM7Fw==",
+      "KeySize": "Aes256",
+      "PaddingMode": "ISO10126",
+      "KeyIsBase64": "true"
     },
     {
       "Mode": "CTR",

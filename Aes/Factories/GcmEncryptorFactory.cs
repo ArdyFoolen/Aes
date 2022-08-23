@@ -22,11 +22,11 @@ namespace Aes.AF.Factories
 
         public override ICryptoTransform CreateEncryptor()
         {
-            transform = aesManager.CreateGcmEncryptor(Settings.Key, Settings.IV, Aad, Settings.KeySize);
+            transform = aesManager.CreateGcmEncryptor(Settings.GetKey(), Settings.IV, Aad, Settings.KeySize);
             return transform;
         }
 
         public override ICryptoTransform CreateDecryptor()
-            => aesManager.CreateGcmDecryptor(Settings.Key, Settings.IV, Aad, Tag, Settings.KeySize);
+            => aesManager.CreateGcmDecryptor(Settings.GetKey(), Settings.IV, Aad, Tag, Settings.KeySize);
     }
 }

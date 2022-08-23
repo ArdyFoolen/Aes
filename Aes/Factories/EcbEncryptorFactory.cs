@@ -16,9 +16,9 @@ namespace Aes.AF.Factories
         }
 
         public override ICryptoTransform CreateEncryptor()
-            => aesManager.CreateEcbEncryptor(Settings.Key, Settings.KeySize);
+            => aesManager.CreateEcbEncryptor(Settings.GetKey(), Settings.KeySize);
 
         public override ICryptoTransform CreateDecryptor()
-            => aesManager.CreateEcbDecryptor(Settings.Key, Settings.KeySize);
+            => aesManager.CreateEcbDecryptor(Settings.GetKey(), Settings.KeySize);
     }
 }
