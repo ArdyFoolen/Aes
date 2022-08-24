@@ -25,5 +25,22 @@ namespace Aes.AF.Factories
                     throw new ArgumentOutOfRangeException($"Invalid Mode {mode}");
             }
         }
+
+        public IEncryptorFactory CreateFactory(AesSettings settings, byte[] aad = null)
+        {
+            switch (settings.Mode)
+            {
+                case EncryptModeEnum.ECB:
+                    return new EcbEncryptorFactory(settings);
+                case EncryptModeEnum.CBC:
+                    return new CbcEncryptorFactory(settings);
+                case EncryptModeEnum.CTR:
+                    return new CtrEncryptorFactory(settings);
+                case EncryptModeEnum.GCM:
+                    return new GcmEncryptorFactory(settings, aad);
+                default:
+                    throw new ArgumentOutOfRangeException($"Invalid Mode {settings.Mode}");
+            }
+        }
     }
 }

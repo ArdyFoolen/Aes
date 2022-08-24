@@ -49,7 +49,7 @@ namespace Aes.AF
         public byte[] GetKey()
             => KeyIsBase64? Convert.FromBase64String(Key) : Key.GetKey(KeySize);
 
-        private static AesSettings Create(IConfigurationSection section)
+        public static AesSettings Create(IConfigurationSection section)
         {
             EncryptModeEnum mode = section["Mode"].ToEnum<EncryptModeEnum>();
             switch (mode)
