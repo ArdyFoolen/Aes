@@ -78,6 +78,33 @@ namespace Aes.Tests
             }
         }
 
+        // TestVectors: https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_CFB.pdf
+        [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptCFB")]
+        public void EnDecryptCFB_EachStep_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
+        {
+            AesManagerContext aesManager = new AesManagerContext();
+            using (Stream inStream = new MemoryStream())
+            {
+                // Arrange
+                inStream.Write(values.In, 0, values.In.Length);
+                inStream.Seek(0, SeekOrigin.Begin);
+
+                // Act
+                Stream outStream = new MemoryStream();
+                values.Crypt(aesManager, outStream, inStream);
+
+                // Assert
+                outStream.Seek(0, SeekOrigin.Begin);
+                byte[] actual = new byte[values.Out.Length + 1];
+                int bytesRead = outStream.Read(actual, 0, values.Out.Length + 1);
+
+                Assert.AreEqual(values.Out.Length, bytesRead);
+
+                var result = string.Join("", values.Out.Select((b, i) => $"{b:x2}{actual[i]:x2}\r\n"));
+                Assert.That(values.Out.Select((b, i) => new { value = b, index = i }).All(a => actual[a.index] == a.value));
+            }
+        }
+
         byte[] randoms = new byte[] { 0xa1, 0xb2, 0xc3, 0xd4, 0xe5, 0xf6, 0xa7, 0xb8, 0xc9, 0xda, 0xeb, 0xfc, 0xad, 0xbe, 0xcf, 0xd0 };
         int indexR = 0;
 

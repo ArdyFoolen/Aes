@@ -25,6 +25,22 @@
       "Key": "Thats my Kung Fu",
       "IV": "AQIDBAUGBwgJAQsM",
       "KeySize": "Aes256"
+    },
+    {
+      "Mode": "CFB",
+      "Key": "XGkx90980CnpWKAkveG0lCAVD66qQNdUbSz6L29V+fQ=",
+      "IV": "GnPEZNG/PiwNxx02DKM7Fw==",
+      "KeySize": "Aes256",
+      "KeyIsBase64": "true",
+      "FeedbackSize": "1"
+    },
+    {
+      "Mode": "OFB",
+      "Key": "XGkx90980CnpWKAkveG0lCAVD66qQNdUbSz6L29V+fQ=",
+      "IV": "GnPEZNG/PiwNxx02DKM7Fw==",
+      "KeySize": "Aes256",
+      "KeyIsBase64": "true",
+      "FeedbackSize": "1"
     }
   ]
 }

@@ -31,11 +31,24 @@ namespace Aes.AF
                 first[i] ^= (byte)(add[i] & mask);
         }
 
-        public static void ShiftRight(this byte[] y)
+        public static void ShiftRight(this byte[] y, int shift = 1)
         {
-            for (int i = y.Length - 1; i > 0; i--)
-                y[i] = (byte)(((y[i] >> 1)) | ((y[i - 1] << 7) & 0x80));
-            y[0] >>= 1;
+            for (int s = 0; s < shift; s++)
+            {
+                for (int i = y.Length - 1; i > 0; i--)
+                    y[i] = (byte)(((y[i] >> 1)) | ((y[i - 1] << 7) & 0x80));
+                y[0] >>= 1;
+            }
+        }
+
+        public static void ShiftLeft(this byte[] y, int shift = 1)
+        {
+            for (int s = 0; s < shift; s++)
+            {
+                for (int i = 0; i < y.Length - 1; i++)
+                    y[i] = (byte)(((y[i] << 1)) | ((y[i + 1] >> 7) & 0x01));
+                y[y.Length - 1] <<= 1;
+            }
         }
     }
 }

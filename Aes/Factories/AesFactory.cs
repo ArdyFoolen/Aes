@@ -26,6 +26,10 @@ namespace Aes.AF.Factories
                     return new CtrEncryptorFactory(settings);
                 case EncryptModeEnum.GCM:
                     return new GcmEncryptorFactory(settings, aad);
+                case EncryptModeEnum.CFB:
+                    return new CfbEncryptorFactory(settings);
+                case EncryptModeEnum.OFB:
+                    return new OfbEncryptorFactory(settings);
                 default:
                     throw new ArgumentOutOfRangeException($"Invalid Mode {settings.Mode}");
             }

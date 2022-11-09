@@ -35,6 +35,8 @@ namespace Aes.AF
 
         public bool KeyIsBase64 { get; private set; } = false;
 
+        public FeedbackSizeEnum FeedbackSize { get; private set; }
+
         public static IEnumerable<AesSettings> GetEnumerator()
         {
             var builder = new ConfigurationBuilder().AddJsonFile(GetAesSettingsEnvPath, optional: false, reloadOnChange: true);
@@ -56,6 +58,9 @@ namespace Aes.AF
             {
                 case EncryptModeEnum.ECB:
                     return CreateEcb(section);
+                case EncryptModeEnum.CFB:
+                case EncryptModeEnum.OFB:
+                    return CreateFeedback(section);
                 case EncryptModeEnum.CBC:
                 case EncryptModeEnum.CTR:
                 case EncryptModeEnum.GCM:
@@ -73,6 +78,17 @@ namespace Aes.AF
                 KeySize = section["KeySize"].ToEnum<AesKeySize>(),
                 PaddingMode = section["PaddingMode"] != null ? section["PaddingMode"].ToEnum<PaddingMode>() : PaddingMode.PKCS7,
                 KeyIsBase64 = section["KeyIsBase64"] != null ? Convert.ToBoolean(section["KeyIsBase64"]) : false
+            };
+
+        private static AesSettings CreateFeedback(IConfigurationSection section)
+            => new AesSettings()
+            {
+                Mode = section["Mode"].ToEnum<EncryptModeEnum>(),
+                Key = section["Key"],
+                IV = Convert.FromBase64String(section["IV"]),
+                KeySize = section["KeySize"].ToEnum<AesKeySize>(),
+                KeyIsBase64 = section["KeyIsBase64"] != null ? Convert.ToBoolean(section["KeyIsBase64"]) : false,
+                FeedbackSize = section["FeedbackSize"].ToEnum<FeedbackSizeEnum>()
             };
 
         private static AesSettings CreateDefault(IConfigurationSection section)

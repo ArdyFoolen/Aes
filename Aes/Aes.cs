@@ -1,5 +1,7 @@
 ﻿using Microsoft.Win32.SafeHandles;
 using System;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -35,12 +37,26 @@ namespace Aes.AF
         Aes256 = 256
     };
 
+    public enum FeedbackSizeEnum
+    {
+        [Display(Name = "1")]
+        One = 1,
+        [Display(Name = "8")]
+        Eight = 8,
+        [Display(Name = "64")]
+        SixtyFour = 64,
+        [Display(Name = "128")]
+        OneHundredTwentyEight = 128
+    };
+
     public enum EncryptModeEnum
     {
         ECB,
         CBC,
         CTR,
-        GCM
+        GCM,
+        CFB,
+        OFB
     };
 
     public partial class AesManager
