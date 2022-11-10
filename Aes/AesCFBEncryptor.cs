@@ -20,8 +20,6 @@ namespace Aes.AF
         {
             if (EncryptModeEnum.CFB.Equals(encryptMode))
                 return AesCFBEncryptor.CreateEncryptor(key, IV, keySize, feedbackSize);
-            if (EncryptModeEnum.OFB.Equals(encryptMode))
-                return AesOFBEncryptor.CreateEncryptor(key, IV, keySize, feedbackSize);
 
             throw new Exception($"Encryption Mode {encryptMode} not valid");
         }
@@ -54,52 +52,34 @@ namespace Aes.AF
             {
                 int returnCount = inputCount;
                 byte[] oBuffer = new byte[OutputBlockSize];
-                byte[] iBuffer = new byte[InputBlockSize];
+                byte[] iBuffer = new byte[inputCount];
 
-                if (FeedbackSize == 1)
+                Array.Copy(inputBuffer, inputOffset, iBuffer, 0, inputCount);
+
+                for (int i = 0; i < inputCount * 8; i += FeedbackSize)
                 {
-                    for (int i = 0; i < inputCount; i += OutputBlockSize)
+                    // Encrypt IV and Xor with plain
+                    this.Aes.Encrypt(this.Aes.IV, 0, oBuffer, 0);
+                    oBuffer = iBuffer.Xor(oBuffer, InputBlockSize);
+
+                    // Move cipher to outputBuffer
+                    if (FeedbackSize == 1)
                     {
-                        Array.Copy(inputBuffer, inputOffset + i, iBuffer, 0, InputBlockSize);
-                        for (int f = 0; f < OutputBlockSize; f++)
-                        {
-                            byte[] oBufferFeedback1 = new byte[1];
-                            for (int b = 0; b < 8; b++)
-                            {
-                                this.Aes.Encrypt(this.Aes.IV, 0, oBuffer, 0);
-                                oBuffer = iBuffer.Add(oBuffer);
-                                byte temp = (byte)(oBuffer[0] & 0x80);
-                                temp >>= b;
-                                oBufferFeedback1[0] |= temp;
-
-                                this.Aes.IV.ShiftLeft(FeedbackSize);
-                                oBuffer.ShiftRight(128 - FeedbackSize);
-                                this.Aes.IV = this.Aes.IV.Add(oBuffer);
-
-                                iBuffer.ShiftLeft(FeedbackSize);
-                            }
-                            Array.Copy(oBufferFeedback1, 0, outputBuffer, outputOffset + i + f, 1);
-                        }
+                        byte temp = (byte)(oBuffer[0] & 0x80);
+                        temp >>= i % 8;
+                        outputBuffer[outputOffset + i / 8] |= temp;
                     }
-                }
-                else
-                {
-                    for (int i = 0; i < inputCount; i += OutputBlockSize)
+                    else
                     {
-                        Array.Copy(inputBuffer, inputOffset + i, iBuffer, 0, InputBlockSize);
-                        for (int f = 0; f < OutputBlockSize; f += FeedbackSize / 8)
-                        {
-                            this.Aes.Encrypt(this.Aes.IV, 0, oBuffer, 0);
-                            oBuffer = iBuffer.Add(oBuffer);
-                            Array.Copy(oBuffer, 0, outputBuffer, outputOffset + i + f, FeedbackSize / 8);
-
-                            this.Aes.IV.ShiftLeft(FeedbackSize);
-                            oBuffer.ShiftRight(128 - FeedbackSize);
-                            this.Aes.IV = this.Aes.IV.Add(oBuffer);
-
-                            iBuffer.ShiftLeft(FeedbackSize);
-                        }
+                        Array.Copy(oBuffer, 0, outputBuffer, outputOffset + i / 8, FeedbackSize / 8);
                     }
+
+                    // Shift cipher into IV
+                    this.Aes.IV.ShiftLeft(FeedbackSize);
+                    oBuffer.ShiftRight(128 - FeedbackSize);
+                    this.Aes.IV = this.Aes.IV.Xor(oBuffer, InputBlockSize);
+
+                    iBuffer.ShiftLeft(FeedbackSize);
                 }
 
                 return returnCount;
@@ -109,47 +89,36 @@ namespace Aes.AF
             {
                 if (inputCount > 0)
                 {
-                    byte[] iBuffer = new byte[InputBlockSize];
-                    byte[] oBuffer = new byte[OutputBlockSize];
-                    Array.Copy(inputBuffer, inputOffset, iBuffer, 0, InputBlockSize);
                     byte[] output = new byte[inputCount];
+                    byte[] oBuffer = new byte[OutputBlockSize];
+                    byte[] iBuffer = new byte[inputCount];
 
-                    if (FeedbackSize == 1)
+                    Array.Copy(inputBuffer, inputOffset, iBuffer, 0, inputCount);
+
+                    for (int i = 0; i < inputCount * 8; i += FeedbackSize)
                     {
-                        for (int f = 0; f < inputCount; f++)
+                        // Encrypt IV and Xor with plain
+                        this.Aes.Encrypt(this.Aes.IV, 0, oBuffer, 0);
+                        oBuffer = iBuffer.Add(oBuffer);
+
+                        // Move cipher to outputBuffer
+                        if (FeedbackSize == 1)
                         {
-                            byte[] oBufferFeedback1 = new byte[1];
-                            for (int b = 0; b < 8; b++)
-                            {
-                                this.Aes.Encrypt(this.Aes.IV, 0, oBuffer, 0);
-                                oBuffer = iBuffer.Add(oBuffer);
-                                byte temp = (byte)(oBuffer[0] & 0x80);
-                                temp >>= b;
-                                oBufferFeedback1[0] |= temp;
-
-                                this.Aes.IV.ShiftLeft(FeedbackSize);
-                                oBuffer.ShiftRight(128 - FeedbackSize);
-                                this.Aes.IV = this.Aes.IV.Add(oBuffer);
-
-                                iBuffer.ShiftLeft(FeedbackSize);
-                            }
-                            Array.Copy(oBufferFeedback1, 0, output, f, 1);
+                            byte temp = (byte)(oBuffer[0] & 0x80);
+                            temp >>= i % 8;
+                            output[i / 8] |= temp;
                         }
-                    }
-                    else
-                    {
-                        for (int f = 0; f < inputCount; f += FeedbackSize / 8)
+                        else
                         {
-                            this.Aes.Encrypt(this.Aes.IV, 0, oBuffer, 0);
-                            oBuffer = iBuffer.Add(oBuffer);
-                            Array.Copy(oBuffer, 0, output, f, FeedbackSize / 8);
-
-                            this.Aes.IV.ShiftLeft(FeedbackSize);
-                            oBuffer.ShiftRight(128 - FeedbackSize);
-                            this.Aes.IV = this.Aes.IV.Add(oBuffer);
-
-                            iBuffer.ShiftLeft(FeedbackSize);
+                            Array.Copy(oBuffer, 0, output, i / 8, FeedbackSize / 8);
                         }
+
+                        // Shift cipher into IV
+                        this.Aes.IV.ShiftLeft(FeedbackSize);
+                        oBuffer.ShiftRight(128 - FeedbackSize);
+                        this.Aes.IV = this.Aes.IV.Xor(oBuffer, InputBlockSize);
+
+                        iBuffer.ShiftLeft(FeedbackSize);
                     }
 
                     return output;

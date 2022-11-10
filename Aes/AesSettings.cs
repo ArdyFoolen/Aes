@@ -59,11 +59,11 @@ namespace Aes.AF
                 case EncryptModeEnum.ECB:
                     return CreateEcb(section);
                 case EncryptModeEnum.CFB:
-                case EncryptModeEnum.OFB:
                     return CreateFeedback(section);
                 case EncryptModeEnum.CBC:
                 case EncryptModeEnum.CTR:
                 case EncryptModeEnum.GCM:
+                case EncryptModeEnum.OFB:
                     return CreateDefault(section);
                 default:
                     throw new ArgumentOutOfRangeException($"Argumendt {mode}");

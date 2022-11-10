@@ -10,30 +10,36 @@ namespace Aes.AF
 {
     public partial class AesManager
     {
-        public ICryptoTransform CreateOfbEncryptor(string key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, FeedbackSizeEnum feedbackSize = FeedbackSizeEnum.OneHundredTwentyEight)
-            => CreateOfbEncryptor(key.GetKey(keySize), IV, keySize, feedbackSize);
+        public ICryptoTransform CreateOfbEncryptor(string key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128)
+            => CreateOfbEncryptor(key.GetKey(keySize), IV, keySize);
 
-        public ICryptoTransform CreateOfbEncryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, FeedbackSizeEnum feedbackSize = FeedbackSizeEnum.OneHundredTwentyEight)
-            => CreateEncryptor(key, IV, EncryptModeEnum.CFB, keySize, feedbackSize);
+        public ICryptoTransform CreateOfbEncryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128)
+            => CreateEncryptor(key, IV, EncryptModeEnum.OFB, keySize);
+
+        private ICryptoTransform CreateEncryptor(byte[] key, byte[] IV, EncryptModeEnum encryptMode, AesKeySize keySize = AesKeySize.Aes128)
+        {
+            if (EncryptModeEnum.OFB.Equals(encryptMode))
+                return AesOFBEncryptor.CreateEncryptor(key, IV, keySize);
+
+            throw new Exception($"Encryption Mode {encryptMode} not valid");
+        }
 
         private class AesOFBEncryptor : ICryptoTransform, IDisposable
         {
             private Aes Aes { get; }
-            private FeedbackSizeEnum FeedbackSize { get; }
-            private AesOFBEncryptor(Aes aes, FeedbackSizeEnum feedbackSize)
+            private AesOFBEncryptor(Aes aes)
             {
                 this.Aes = aes;
-                this.FeedbackSize = feedbackSize;
             }
 
             #region Encryptor/Decryptor
 
-            public static ICryptoTransform CreateEncryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128, FeedbackSizeEnum feedbackSize = FeedbackSizeEnum.OneHundredTwentyEight)
+            public static ICryptoTransform CreateEncryptor(byte[] key, byte[] IV, AesKeySize keySize = AesKeySize.Aes128)
             {
                 Aes aes = new Aes(key.Copy(), IV.Copy(), keySize);
                 aes.EncryptMode = EncryptModeEnum.OFB;
                 aes.InitializeRoundKey();
-                return new AesOFBEncryptor(aes, feedbackSize);
+                return new AesOFBEncryptor(aes);
             }
 
             #endregion
@@ -43,14 +49,19 @@ namespace Aes.AF
             public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
             {
                 int returnCount = inputCount;
+                byte[] oBuffer = new byte[OutputBlockSize];
+                byte[] iBuffer = new byte[inputCount];
+
+                Array.Copy(inputBuffer, inputOffset, iBuffer, 0, inputCount);
+                Array.Copy(this.Aes.IV, 0, oBuffer, 0, OutputBlockSize);
 
                 for (int i = 0; i < inputCount; i += OutputBlockSize)
                 {
-                    byte[] buffer = new byte[InputBlockSize];
-                    Array.Copy(inputBuffer, inputOffset + i, buffer, 0, InputBlockSize);
-                    buffer = buffer.Add(this.Aes.IV);
-                    this.Aes.Encrypt(buffer, 0, outputBuffer, outputOffset + i);
-                    Array.Copy(outputBuffer, outputOffset + i, this.Aes.IV, 0, InputBlockSize);
+                    // Encrypt IV and Xor with plain then move to outputBuffer
+                    this.Aes.Encrypt(oBuffer, 0, oBuffer, 0);
+                    Array.Copy(iBuffer.Xor(oBuffer, InputBlockSize), 0, outputBuffer, outputOffset + i, OutputBlockSize);
+
+                    iBuffer.ShiftLeft(InputBlockSize * 8);
                 }
 
                 return returnCount;
@@ -58,12 +69,23 @@ namespace Aes.AF
 
             public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
             {
-                byte[] buffer = new byte[InputBlockSize];
-                byte[] output = new byte[OutputBlockSize];
-                Array.Copy(inputBuffer, inputOffset, buffer, 0, InputBlockSize);
-                buffer = buffer.Add(this.Aes.IV);
-                this.Aes.Encrypt(buffer, 0, output, 0);
-                return output;
+                if (inputCount > 0)
+                {
+                    byte[] output = new byte[inputCount];
+                    byte[] oBuffer = new byte[OutputBlockSize];
+                    byte[] iBuffer = new byte[inputCount];
+
+                    Array.Copy(inputBuffer, inputOffset, iBuffer, 0, inputCount);
+                    Array.Copy(this.Aes.IV, 0, oBuffer, 0, OutputBlockSize);
+
+                    // Encrypt IV and Xor with plain
+                    this.Aes.Encrypt(oBuffer, 0, oBuffer, 0);
+                    Array.Copy(iBuffer.Xor(oBuffer, InputBlockSize), 0, output, 0, inputCount);
+
+                    return output;
+                }
+                else
+                    return new byte[0];
             }
 
             public bool CanReuseTransform

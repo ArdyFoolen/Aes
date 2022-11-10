@@ -25,6 +25,26 @@ namespace Aes.AF
             return result;
         }
 
+        /// <summary>
+        /// Xor operation on byte arrays
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static byte[] Xor(this byte[] a, byte[] b, int maxLength)
+        {
+            int l = (a?.Length ?? 0) > (b?.Length ?? 0) ? a.Length : b.Length;
+            l = l < maxLength ? l : maxLength;
+            byte[] result = new byte[l];
+            for (int i = 0; i < l; i++)
+            {
+                byte first = i < (a?.Length ?? 0) ? a[i] : (byte)0x00;
+                byte second = i < (b?.Length ?? 0) ? b[i] : (byte)0x00;
+                result[i] = (byte)(first ^ second);
+            }
+            return result;
+        }
+
         public static void AddToFirst(this byte[] first, byte[] add, byte mask)
         {
             for (int i = 0; i < first.Length; i++)
