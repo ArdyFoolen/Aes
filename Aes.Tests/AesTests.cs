@@ -58,7 +58,7 @@ namespace Aes.Tests
         public void EnDecryptOFB_ExtraCoverage_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
             => EncryptDecryptAssert(values);
 
-        private static void EncryptDecryptAssert((byte[] In, byte[] Out, Action<AesManager, Stream, Stream> Crypt) values)
+        private void EncryptDecryptAssert((byte[] In, byte[] Out, Action<AesManager, Stream, Stream> Crypt) values)
         {
             AesManagerContext aesManager = new AesManagerContext();
             using (Stream inStream = new MemoryStream())
