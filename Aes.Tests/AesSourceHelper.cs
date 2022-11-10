@@ -177,20 +177,18 @@ namespace Aes.Tests
 
                 //------------------------------------------------------------------------------------------------------------------------
 
-                //plainBytes = new byte[] { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
-                //cryptBytes = new byte[] { 0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a };
-                //yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, Keys[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.SixtyFour, outStream, inStream));
-                //yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, Keys[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.SixtyFour, outStream, inStream));
+                plainBytes = new byte[] { 0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96, 0xE9, 0x3D, 0x7E, 0x11, 0x73, 0x93, 0x17, 0x2A };
+                cryptBytes = new byte[] { 0x61, 0x55, 0xb5, 0x57, 0x6f, 0x2e, 0x6f, 0xd3, 0xb6, 0xda, 0x29, 0x0c, 0x4d, 0x3b, 0xc8, 0x69 };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, Keys[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.SixtyFour, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, Keys[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.SixtyFour, outStream, inStream));
 
-                //plainBytes = new byte[] { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
-                //cryptBytes = new byte[] { 0xdd, 0xa9, 0x7c, 0xa4, 0x86, 0x4c, 0xdf, 0xe0, 0x6e, 0xaf, 0x70, 0xa0, 0xec, 0x0d, 0x71, 0x91 };
-                //yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, Keys[1], IVCfb, AesKeySize.Aes192, FeedbackSizeEnum.SixtyFour, outStream, inStream));
-                //yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, Keys[1], IVCfb, AesKeySize.Aes192, FeedbackSizeEnum.SixtyFour, outStream, inStream));
+                cryptBytes = new byte[] { 0x6b, 0xa1, 0x01, 0x1c, 0x68, 0xc3, 0xd4, 0x2e, 0x37, 0x06, 0x3b, 0x7c, 0x4f, 0x04, 0xa0, 0x6c };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, Keys[1], IVCfb, AesKeySize.Aes192, FeedbackSizeEnum.SixtyFour, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, Keys[1], IVCfb, AesKeySize.Aes192, FeedbackSizeEnum.SixtyFour, outStream, inStream));
 
-                //plainBytes = new byte[] { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
-                //cryptBytes = new byte[] { 0x8e, 0xa2, 0xb7, 0xca, 0x51, 0x67, 0x45, 0xbf, 0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89 };
-                //yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, Keys[2], IVCfb, AesKeySize.Aes256, FeedbackSizeEnum.SixtyFour, outStream, inStream));
-                //yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, Keys[2], IVCfb, AesKeySize.Aes256, FeedbackSizeEnum.SixtyFour, outStream, inStream));
+                cryptBytes = new byte[] { 0x31, 0xaf, 0xba, 0xb5, 0x26, 0xbb, 0xee, 0x00, 0x92, 0xf5, 0xc0, 0xf0, 0xfc, 0x24, 0xaf, 0xee };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, Keys[2], IVCfb, AesKeySize.Aes256, FeedbackSizeEnum.SixtyFour, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, Keys[2], IVCfb, AesKeySize.Aes256, FeedbackSizeEnum.SixtyFour, outStream, inStream));
 
                 ////------------------------------------------------------------------------------------------------------------------------
 
@@ -243,6 +241,62 @@ namespace Aes.Tests
                 };
                 yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptOFB(aes, KeysOfb[2], IVCfb, AesKeySize.Aes256, outStream, inStream));
                 yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => EncryptOFB(aes, KeysOfb[2], IVCfb, AesKeySize.Aes256, outStream, inStream));
+            }
+        }
+
+        public static IEnumerable<(byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt)> EncryptDecryptCFBExtraCoverage
+        {
+            get
+            {
+                // Single block FeedbackSize = 1
+                byte[] plainBytes = new byte[] { 0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96, 0xE9, 0x3D, 0x7E, 0x11, 0x73, 0x93, 0x17, 0x2A };
+                byte[] cryptBytes = new byte[] { 0x68, 0xb3, 0xa2, 0x64, 0xf8, 0x38, 0xf5, 0xf8, 0xc3, 0x10, 0x10, 0x70, 0xd1, 0xab, 0x4c, 0x2e };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, KeysCfb[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.One, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, KeysCfb[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.One, outStream, inStream));
+
+                // Multiple block FeedbackSize = 1
+                plainBytes = new byte[] { 0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96, 0xE9, 0x3D, 0x7E, 0x11, 0x73, 0x93, 0x17, 0x2A,
+                                          0xAE, 0x2D, 0x8A, 0x57, 0x1E, 0x03, 0xAC, 0x9C, 0x9E, 0xB7, 0x6F, 0xAC, 0x45, 0xAF, 0x8E, 0x51,
+                                          0x30, 0xC8, 0x1C, 0x46, 0xA3, 0x5C, 0xE4, 0x11, 0xE5, 0xFB, 0xC1, 0x19, 0x1A, 0x0A, 0x52, 0xEF,
+                                          0xF6, 0x9F, 0x24, 0x45, 0xDF, 0x4F, 0x9B, 0x17, 0xAD, 0x2B, 0x41, 0x7B, 0xE6, 0x6C, 0x37, 0x10
+                };
+                cryptBytes = new byte[] { 0x68, 0xb3, 0xa2, 0x64, 0xf8, 0x38, 0xf5, 0xf8, 0xc3, 0x10, 0x10, 0x70, 0xd1, 0xab, 0x4c, 0x2e,
+                                          0x22, 0xe7, 0xf9, 0x50, 0x38, 0x3a, 0x0b, 0x71, 0xad, 0xe4, 0xfa, 0xd0, 0x09, 0x5c, 0xb1, 0x88,
+                                          0xa5, 0x79, 0x72, 0xc3, 0xc1, 0x88, 0x26, 0x15, 0xf7, 0x51, 0x14, 0x11, 0xfb, 0xeb, 0xf1, 0x19,
+                                          0x39, 0x97, 0x06, 0x97, 0x04, 0xfc, 0x1d, 0x1f, 0x27, 0x02, 0x84, 0x34, 0xc9, 0x9e, 0x60, 0xf4
+                };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, KeysCfb[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.One, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, KeysCfb[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.One, outStream, inStream));
+
+                // FinalBlock FeedbackSize != 1
+                plainBytes = new byte[] { 0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96 };
+                cryptBytes = new byte[] { 0x3B, 0x3F, 0xD9, 0x2E, 0xB7, 0x2D, 0xAD, 0x20 };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, KeysCfb[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.OneHundredTwentyEight, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, KeysCfb[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.OneHundredTwentyEight, outStream, inStream));
+
+                // FinalBlock FeedbackSize != 1
+                plainBytes = new byte[] { 0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96 };
+                cryptBytes = new byte[] { 0x3b, 0x79, 0x42, 0x4c, 0x9c, 0x0d, 0xd4, 0x36 };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptCFB(aes, KeysCfb[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.Eight, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => DecryptCFB(aes, KeysCfb[0], IVCfb, AesKeySize.Aes128, FeedbackSizeEnum.Eight, outStream, inStream));
+            }
+        }
+
+        public static IEnumerable<(byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt)> EncryptDecryptOFBExtraCoverage
+        {
+            get
+            {
+                // Single block
+                byte[] plainBytes = new byte[] { 0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96, 0xE9, 0x3D, 0x7E, 0x11, 0x73, 0x93, 0x17, 0x2A };
+                byte[] cryptBytes = new byte[] { 0x3B, 0x3F, 0xD9, 0x2E, 0xB7, 0x2D, 0xAD, 0x20, 0x33, 0x34, 0x49, 0xF8, 0xE8, 0x3C, 0xFB, 0x4A };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptOFB(aes, KeysOfb[0], IVCfb, AesKeySize.Aes128, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => EncryptOFB(aes, KeysOfb[0], IVCfb, AesKeySize.Aes128, outStream, inStream));
+
+                // FinalBlock
+                plainBytes = new byte[] { 0x6B, 0xC1, 0xBE, 0xE2, 0x2E, 0x40, 0x9F, 0x96 };
+                cryptBytes = new byte[] { 0xCD, 0xC8, 0x0D, 0x6F, 0xDD, 0xF1, 0x8C, 0xAB };
+                yield return (plainBytes, cryptBytes, (aes, outStream, inStream) => EncryptOFB(aes, KeysOfb[1], IVCfb, AesKeySize.Aes192, outStream, inStream));
+                yield return (cryptBytes, plainBytes, (aes, outStream, inStream) => EncryptOFB(aes, KeysOfb[1], IVCfb, AesKeySize.Aes192, outStream, inStream));
             }
         }
 

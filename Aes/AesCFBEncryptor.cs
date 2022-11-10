@@ -110,7 +110,9 @@ namespace Aes.AF
                         }
                         else
                         {
-                            Array.Copy(oBuffer, 0, output, i / 8, FeedbackSize / 8);
+                            var count = FeedbackSize / 8;
+                            count = inputCount - i / 8 > count ? count : inputCount - i / 8;
+                            Array.Copy(oBuffer, 0, output, i / 8, count);
                         }
 
                         // Shift cipher into IV

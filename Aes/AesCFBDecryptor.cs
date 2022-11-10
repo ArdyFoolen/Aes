@@ -85,7 +85,7 @@ namespace Aes.AF
 
                     // Shift cipher into IV
                     this.Aes.IV.ShiftLeft(FeedbackSize);
-                    Array.Copy(iBuffer, 0, oBuffer, 0, FeedbackSize / 8);
+                    Array.Copy(iBuffer, 0, oBuffer, 0, InputBlockSize);
                     oBuffer.ShiftRight(128 - FeedbackSize);
                     this.Aes.IV = this.Aes.IV.Xor(oBuffer, InputBlockSize);
 
@@ -120,7 +120,9 @@ namespace Aes.AF
                         }
                         else
                         {
-                            Array.Copy(oBuffer, 0, output, i / 8, FeedbackSize / 8);
+                            var count = FeedbackSize / 8;
+                            count = inputCount - i / 8 > count ? count : inputCount - i / 8;
+                            Array.Copy(oBuffer, 0, output, i / 8, count);
                         }
 
                         // Shift cipher into IV

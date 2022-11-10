@@ -30,84 +30,35 @@ namespace Aes.Tests
 
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecrypt")]
         public void EnDecrypt_EachStep_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
-        {
-            AesManagerContext aesManager = new AesManagerContext();
-            using (Stream inStream = new MemoryStream())
-            {
-                // Arrange
-                inStream.Write(values.In, 0, 16);
-                inStream.Seek(0, SeekOrigin.Begin);
-
-                // Act
-                Stream outStream = new MemoryStream();
-                values.Crypt(aesManager, outStream, inStream);
-
-                // Assert
-                outStream.Seek(0, SeekOrigin.Begin);
-                byte[] actual = new byte[17];
-                int bytesRead = outStream.Read(actual, 0, 17);
-
-                Assert.AreEqual(16, bytesRead);
-                Assert.That(values.Out.Select((b, i) => new { value = b, index = i }).All(a => actual[a.index] == a.value));
-            }
-        }
+            => EncryptDecryptAssert(values);
 
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptDifferentPadding")]
         public void EnDecrypt_DifferentPadding_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
         {
             indexR = 0;
             PaddingFactory.DiRandomByte = () => GetRandomByte();
-            AesManagerContext aesManager = new AesManagerContext();
-            using (Stream inStream = new MemoryStream())
-            {
-                // Arrange
-                inStream.Write(values.In, 0, values.In.Length);
-                inStream.Seek(0, SeekOrigin.Begin);
-
-                // Act
-                Stream outStream = new MemoryStream();
-                values.Crypt(aesManager, outStream, inStream);
-
-                // Assert
-                outStream.Seek(0, SeekOrigin.Begin);
-                byte[] actual = new byte[values.Out.Length + 1];
-                int bytesRead = outStream.Read(actual, 0, values.Out.Length + 1);
-
-                Assert.AreEqual(values.Out.Length, bytesRead);
-                Assert.That(values.Out.Select((b, i) => new { value = b, index = i }).All(a => actual[a.index] == a.value));
-            }
+            EncryptDecryptAssert(values);
         }
 
         // TestVectors: https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_CFB.pdf
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptCFB")]
         public void EnDecryptCFB_EachStep_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
-        {
-            AesManagerContext aesManager = new AesManagerContext();
-            using (Stream inStream = new MemoryStream())
-            {
-                // Arrange
-                inStream.Write(values.In, 0, values.In.Length);
-                inStream.Seek(0, SeekOrigin.Begin);
-
-                // Act
-                Stream outStream = new MemoryStream();
-                values.Crypt(aesManager, outStream, inStream);
-
-                // Assert
-                outStream.Seek(0, SeekOrigin.Begin);
-                byte[] actual = new byte[values.Out.Length + 1];
-                int bytesRead = outStream.Read(actual, 0, values.Out.Length + 1);
-
-                Assert.AreEqual(values.Out.Length, bytesRead);
-
-                var result = string.Join("", values.Out.Select((b, i) => $"{b:x2}{actual[i]:x2}\r\n"));
-                Assert.That(values.Out.Select((b, i) => new { value = b, index = i }).All(a => actual[a.index] == a.value));
-            }
-        }
+            => EncryptDecryptAssert(values);
 
         // TestVectors: https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/AES_OFB.pdf
         [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptOFB")]
         public void EnDecryptOFB_EachStep_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
+            => EncryptDecryptAssert(values);
+
+        [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptCFBExtraCoverage")]
+        public void EnDecryptCFB_ExtraCoverage_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
+            => EncryptDecryptAssert(values);
+
+        [TestCaseSource(typeof(AesSourceHelper), "EncryptDecryptOFBExtraCoverage")]
+        public void EnDecryptOFB_ExtraCoverage_ShouldBeCorrect((byte[] In, byte[] Out, Action<Aes.AF.AesManager, Stream, Stream> Crypt) values)
+            => EncryptDecryptAssert(values);
+
+        private static void EncryptDecryptAssert((byte[] In, byte[] Out, Action<AesManager, Stream, Stream> Crypt) values)
         {
             AesManagerContext aesManager = new AesManagerContext();
             using (Stream inStream = new MemoryStream())
