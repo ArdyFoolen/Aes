@@ -22,9 +22,10 @@
     },
     {
       "Mode": "GCM",
-      "Key": "Thats my Kung Fu",
+      "Key": "XGkx90980CnpWKAkveG0lCAVD66qQNdUbSz6L29V+fQ=",
       "IV": "AQIDBAUGBwgJAQsM",
-      "KeySize": "Aes256"
+      "KeySize": "Aes256",
+      "KeyIsBase64": "true"
     },
     {
       "Mode": "CFB",

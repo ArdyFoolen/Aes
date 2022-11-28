@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -37,6 +38,7 @@ namespace Aes.AF
 
         public FeedbackSizeEnum FeedbackSize { get; private set; }
 
+#if NET6_0
         public static IEnumerable<AesSettings> GetEnumerator()
         {
             var builder = new ConfigurationBuilder().AddJsonFile(GetAesSettingsEnvPath, optional: false, reloadOnChange: true);
@@ -47,6 +49,7 @@ namespace Aes.AF
                 .GetChildren()
                 .Select(s => Create(s));
         }
+#endif
 
         public byte[] GetKey()
             => KeyIsBase64? Convert.FromBase64String(Key) : Key.GetKey(KeySize);
@@ -69,6 +72,22 @@ namespace Aes.AF
                     throw new ArgumentOutOfRangeException($"Argumendt {mode}");
             }
         }
+
+        public static AesSettings Create(EncryptModeEnum mode, string key, string iv,
+            AesKeySize keySize = AesKeySize.Aes256,
+            PaddingMode paddingMode = PaddingMode.PKCS7,
+            bool keyIsBase64 = true,
+            FeedbackSizeEnum feedbackSize = FeedbackSizeEnum.Eight)
+            => new AesSettings()
+            {
+                Mode = mode,
+                Key = key,
+                IV = Convert.FromBase64String(iv),
+                KeySize = keySize,
+                PaddingMode = paddingMode,
+                KeyIsBase64 = keyIsBase64,
+                FeedbackSize = feedbackSize
+            };
 
         private static AesSettings CreateEcb(IConfigurationSection section)
             => new AesSettings()

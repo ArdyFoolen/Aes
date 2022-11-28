@@ -78,6 +78,16 @@ namespace Aes.App
             decrypted = remoteGcmFactory.Decrypt(gcmEncrypted);
             if (!unencrypted.Equals(decrypted))
                 throw new Exception("Encrypt and Decrypt not succeeded");
+
+            // Test for VideoPlayer
+            // C:\Users\afoolen\source\repos\VideoPlayer\VideoPlayer\TestFiles\sample-mp4-file.mp4
+            // GCM encryption
+            ad = "sample-mp4-file.mp4";
+            aad = KeyHelper.GetKey(ad, ad.Length);
+            gcmFactory = aesFactory.CreateFactory(EncryptModeEnum.GCM, aad) as GcmEncryptorFactory;
+            Encrypt("C:\\Users\\afoolen\\source\\repos\\VideoPlayer\\VideoPlayer\\TestFiles\\sample-mp4-file.mp4",
+                "C:\\Users\\afoolen\\source\\repos\\VideoPlayer\\VideoPlayerApp\\Encrypted\\sample-mp4-file.eaf", gcmFactory);
+            gcmTag = gcmFactory.Tag;
         }
 
         private static void Encrypt(string sourceFile, string targetFile, IEncryptorFactory factory)

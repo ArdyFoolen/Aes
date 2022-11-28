@@ -7,12 +7,14 @@ namespace Aes.AF.Factories
 {
     public class AesFactory : IAesFactory
     {
+#if NET6_0
         public IEncryptorFactory CreateFactory(EncryptModeEnum mode, byte[] aad = null)
         {
             var settings = AesSettings.GetEnumerator()
                 .FirstOrDefault(s => s.Mode.Equals(mode));
             return CreateFactory(settings, aad);
         }
+#endif
 
         public IEncryptorFactory CreateFactory(AesSettings settings, byte[] aad = null)
         {
